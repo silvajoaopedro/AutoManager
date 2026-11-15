@@ -2,13 +2,13 @@
 
 @{
     ViewData["Title"] = "Clientes";
-    bool podeEditar = User.IsInRole("Atendente");
+    bool podeGerenciar = User.IsInRole("Atendente");
 }
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="mb-0">Clientes</h1>
 
-    @if (podeEditar)
+    @if (podeGerenciar)
     {
         <a asp-controller="Clientes"
            asp-action="Cadastrar"
@@ -40,7 +40,7 @@ else
                     <th scope="col">Nome</th>
                     <th scope="col">Telefone</th>
 
-                    @if (podeEditar)
+                    @if (podeGerenciar)
                     {
                         <th scope="col">Ações</th>
                     }
@@ -53,15 +53,24 @@ else
                         <td>@cliente.Nome</td>
                         <td>@cliente.Telefone</td>
 
-                        @if (podeEditar)
+                        @if (podeGerenciar)
                         {
                             <td>
-                                <a asp-controller="Clientes"
-                                   asp-action="Editar"
-                                   asp-route-id="@cliente.Id"
-                                   class="btn btn-outline-primary btn-sm">
-                                    Editar
-                                </a>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a asp-controller="Clientes"
+                                       asp-action="Editar"
+                                       asp-route-id="@cliente.Id"
+                                       class="btn btn-outline-primary btn-sm">
+                                        Editar
+                                    </a>
+
+                                    <a asp-controller="Clientes"
+                                       asp-action="Excluir"
+                                       asp-route-id="@cliente.Id"
+                                       class="btn btn-outline-danger btn-sm">
+                                        Excluir
+                                    </a>
+                                </div>
                             </td>
                         }
                     </tr>

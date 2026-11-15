@@ -1,0 +1,41 @@
+@model AutoManager.Models.Cliente
+
+@{
+    ViewData["Title"] = "Excluir cliente";
+}
+
+<h1 class="mb-3">Excluir cliente</h1>
+
+<p>Deseja realmente excluir este cliente?</p>
+
+<div asp-validation-summary="ModelOnly"
+     class="text-danger mb-3"></div>
+
+<dl class="row">
+    <dt class="col-sm-2">Nome</dt>
+    <dd class="col-sm-10">@Model.Nome</dd>
+
+    <dt class="col-sm-2">Telefone</dt>
+    <dd class="col-sm-10">@Model.Telefone</dd>
+</dl>
+
+<p class="text-muted">
+    A exclusão será bloqueada se o cliente possuir veículos vinculados.
+</p>
+
+<form asp-controller="Clientes"
+      asp-action="Excluir"
+      asp-route-id="@Model.Id"
+      method="post"
+      asp-antiforgery="true">
+
+    <button type="submit" class="btn btn-danger">
+        Confirmar exclusão
+    </button>
+
+    <a asp-controller="Clientes"
+       asp-action="Index"
+       class="btn btn-outline-secondary">
+        Cancelar
+    </a>
+</form>

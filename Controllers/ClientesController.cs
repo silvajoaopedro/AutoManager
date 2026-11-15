@@ -118,4 +118,48 @@ public class ClientesController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpGet]
+    [Authorize(Roles = "Atendente")]
+    public IActionResult Excluir(Guid id)
+    {
+        var cliente = _oficina.ConsultarClientes()
+            .FirstOrDefault(item => item.Id == id);
+
+        if (cliente is null)
+        {
+            return NotFound();
+        }
+
+        return View(cliente);
+    }
+
+    [HttpPost]
+    [ActionName("Excluir")]
+    [Authorize(Roles = "Atendente")]
+    [ValidateAntiForgeryToken]
+    public IActionResult ConfirmarExclusao(Guid id)
+    {
+        var cliente = _oficina.ConsultarClientes()
+            .FirstOrDefault(item => item.Id == id);
+
+        if (cliente is null)
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            _oficina.ExcluirCliente(id, confirmado: true);
+        }
+        catch (InvalidOperationException erro)
+        {
+            ModelState.AddModelError(string.Empty, erro.Message);
+            return View("Excluir", cliente);
+        }
+
+        TempData["Sucesso"] = "Cliente excluído com sucesso.";
+
+        return RedirectToAction(nameof(Index));
+    }
 }
