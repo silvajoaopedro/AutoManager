@@ -7,10 +7,17 @@ if (args.Contains("--verificar-json"))
     return;
 }
 
+if (args.Contains("--verificar-regras"))
+{
+    VerificacaoOficina.Executar();
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<RepositorioJson>();
+builder.Services.AddSingleton<OficinaService>();
 
 var app = builder.Build();
 
