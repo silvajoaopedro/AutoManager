@@ -145,14 +145,9 @@ public class RepositorioJson
                 arquivo.Flush(flushToDisk: true);
             }
 
-            if (File.Exists(_caminho))
-            {
-                File.Replace(temporario, _caminho, null);
-            }
-            else
-            {
-                File.Move(temporario, _caminho);
-            }
+            // O temporário já está completo e fechado.
+            // Substitui o destino sem excluí-lo previamente.
+            File.Move(temporario, _caminho, overwrite: true);
         }
         finally
         {
