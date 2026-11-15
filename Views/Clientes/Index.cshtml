@@ -4,7 +4,25 @@
     ViewData["Title"] = "Clientes";
 }
 
-<h1 class="mb-3">Clientes</h1>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="mb-0">Clientes</h1>
+
+    @if (User.IsInRole("Atendente"))
+    {
+        <a asp-controller="Clientes"
+           asp-action="Cadastrar"
+           class="btn btn-primary">
+            Cadastrar cliente
+        </a>
+    }
+</div>
+
+@if (TempData["Sucesso"] is string mensagem)
+{
+    <div class="alert alert-success" role="status">
+        @mensagem
+    </div>
+}
 
 @if (!Model.Any())
 {
