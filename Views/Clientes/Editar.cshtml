@@ -1,0 +1,54 @@
+@model AutoManager.Models.ClienteViewModel
+
+@{
+    ViewData["Title"] = "Editar cliente";
+}
+
+<h1 class="mb-3">Editar cliente</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-controller="Clientes"
+              asp-action="Editar"
+              asp-route-id="@ViewData["ClienteId"]"
+              method="post"
+              asp-antiforgery="true">
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Nome" class="form-label"></label>
+                <input asp-for="Nome"
+                       class="form-control"
+                       autocomplete="name" />
+                <span asp-validation-for="Nome"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Telefone" class="form-label"></label>
+                <input asp-for="Telefone"
+                       type="tel"
+                       class="form-control"
+                       autocomplete="tel" />
+                <span asp-validation-for="Telefone"
+                      class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Salvar alterações
+            </button>
+
+            <a asp-controller="Clientes"
+               asp-action="Index"
+               class="btn btn-outline-secondary">
+                Cancelar
+            </a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

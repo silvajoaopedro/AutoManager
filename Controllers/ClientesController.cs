@@ -18,9 +18,7 @@ public class ClientesController : Controller
     [HttpGet]
     public IActionResult Index()
     {
-        var clientes = _oficina.ConsultarClientes();
-
-        return View(clientes);
+        return View(_oficina.ConsultarClientes());
     }
 
     [HttpGet]
@@ -48,14 +46,75 @@ public class ClientesController : Controller
         }
         catch (ArgumentException erro)
         {
-            ModelState.AddModelError(
-                string.Empty,
-                erro.Message);
-
+            ModelState.AddModelError(string.Empty, erro.Message);
             return View(modelo);
         }
 
         TempData["Sucesso"] = "Cliente cadastrado com sucesso.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Atendente")]
+    public IActionResult Editar(Guid id)
+    {
+        var cliente = _oficina.ConsultarClientes()
+            .FirstOrDefault(item => item.Id == id);
+
+        if (cliente is null)
+        {
+            return NotFound();
+        }
+
+        ViewData["ClienteId"] = cliente.Id;
+
+        return View(new ClienteViewModel
+        {
+            Nome = cliente.Nome,
+            Telefone = cliente.Telefone
+        });
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Atendente")]
+    [ValidateAntiForgeryToken]
+    public IActionResult Editar(Guid id, ClienteViewModel modelo)
+    {
+        var cliente = _oficina.ConsultarClientes()
+            .FirstOrDefault(item => item.Id == id);
+
+        if (cliente is null)
+        {
+            return NotFound();
+        }
+
+        ViewData["ClienteId"] = id;
+
+        if (!ModelState.IsValid)
+        {
+            return View(modelo);
+        }
+
+        try
+        {
+            _oficina.EditarCliente(
+                id,
+                modelo.Nome,
+                modelo.Telefone);
+        }
+        catch (ArgumentException erro)
+        {
+            ModelState.AddModelError(string.Empty, erro.Message);
+            return View(modelo);
+        }
+        catch (InvalidOperationException erro)
+        {
+            ModelState.AddModelError(string.Empty, erro.Message);
+            return View(modelo);
+        }
+
+        TempData["Sucesso"] = "Cliente atualizado com sucesso.";
 
         return RedirectToAction(nameof(Index));
     }
