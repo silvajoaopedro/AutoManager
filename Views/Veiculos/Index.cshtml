@@ -1,0 +1,40 @@
+﻿@model IEnumerable<AutoManager.Models.VeiculoListaViewModel>
+
+@{
+    ViewData["Title"] = "Veículos";
+}
+
+<h1 class="mb-3">Veículos</h1>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info" role="status">
+        Nenhum veículo cadastrado.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Placa</th>
+                    <th scope="col">Marca</th>
+                    <th scope="col">Modelo</th>
+                    <th scope="col">Proprietário</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var veiculo in Model)
+                {
+                    <tr>
+                        <td>@veiculo.Placa</td>
+                        <td>@veiculo.Marca</td>
+                        <td>@veiculo.Modelo</td>
+                        <td>@veiculo.NomeCliente</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
