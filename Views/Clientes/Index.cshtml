@@ -1,0 +1,36 @@
+@model IEnumerable<AutoManager.Models.Cliente>
+
+@{
+    ViewData["Title"] = "Clientes";
+}
+
+<h1 class="mb-3">Clientes</h1>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info" role="status">
+        Nenhum cliente cadastrado.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Telefone</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cliente in Model)
+                {
+                    <tr>
+                        <td>@cliente.Nome</td>
+                        <td>@cliente.Telefone</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
