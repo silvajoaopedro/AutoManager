@@ -1,0 +1,62 @@
+@model AutoManager.Models.OrdemServico
+@using AutoManager.Models
+@{
+    ViewData["Title"] = $"Ordem #{Model.Numero}";
+    var veiculo = ViewBag.Veiculo as Veiculo;
+}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+    <div><h1 class="mb-1">Ordem #@Model.Numero</h1><p class="text-muted mb-0">Aberta em @Model.DataAbertura.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p></div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Voltar às ordens</a>
+</div>
+@if (TempData["Sucesso"] is string sucesso) { <div class="alert alert-success" role="status">@sucesso</div> }
+@if (TempData["Erro"] is string erro) { <div class="alert alert-danger" role="alert">@erro</div> }
+<div class="card mb-4"><div class="card-body">
+    <h2 class="h5">Informações da ordem</h2>
+    <p><strong>Veículo:</strong> @(veiculo == null ? "Não encontrado" : $"{veiculo.Placa} — {veiculo.Marca} {veiculo.Modelo}")</p>
+    <p><strong>Problema:</strong> @Model.ProblemaRelatado</p>
+    <p><strong>Status:</strong> @(Model.Status == StatusOrdem.EmAndamento ? "Em andamento" : Model.Status == StatusOrdem.Concluida ? "Concluída" : "Pendente")</p>
+</div></div>
+@if (Model.Status != StatusOrdem.Concluida)
+{
+    <div class="card mb-4"><div class="card-body">
+        <h2 class="h5">Atualizar andamento</h2>
+        <form asp-action="AtualizarStatus" method="post" asp-antiforgery="true">
+            <input type="hidden" name="numero" value="@Model.Numero" />
+            @if (Model.Status == StatusOrdem.Pendente)
+            {
+                <input type="hidden" name="destino" value="@((int)StatusOrdem.EmAndamento)" />
+                <button type="submit" class="btn btn-primary">Iniciar serviço</button>
+            }
+            else
+            {
+                <input type="hidden" name="destino" value="@((int)StatusOrdem.Concluida)" />
+                <label for="observacao" class="form-label">Observação obrigatória para conclusão</label>
+                <textarea id="observacao" name="observacao" class="form-control mb-2" rows="3" required maxlength="2000"></textarea>
+                <button type="submit" class="btn btn-success">Concluir ordem</button>
+            }
+        </form>
+    </div></div>
+    <div class="card mb-4"><div class="card-body">
+        <h2 class="h5">Adicionar observação</h2>
+        <form asp-action="RegistrarObservacao" method="post" asp-antiforgery="true">
+            <input type="hidden" name="numero" value="@Model.Numero" />
+            <textarea name="texto" class="form-control mb-2" rows="3" required maxlength="2000" aria-label="Texto da observação"></textarea>
+            <button type="submit" class="btn btn-outline-primary">Salvar observação</button>
+        </form>
+    </div></div>
+}
+else
+{
+    <div class="alert alert-success">Ordem concluída. Conforme as regras de negócio, ela não pode ser reaberta ou alterada.</div>
+}
+<h2 class="h5">Histórico de observações</h2>
+@if (!Model.Observacoes.Any()) { <p class="text-muted">Nenhuma observação registrada.</p> }
+else
+{
+    <div class="list-group">
+        @foreach (var item in Model.Observacoes)
+        {
+            <div class="list-group-item"><p class="mb-1">@item.Texto</p></div>
+        }
+    </div>
+}
