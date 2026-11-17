@@ -1,14 +1,24 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using AutoManager.Models;
+using AutoManager.Services;
 
 namespace AutoManager.Controllers;
 
-public class HomeController : Controller
+public class HomeController(OficinaService oficina) : Controller
 {
     public IActionResult Index()
     {
-        return View();
+        var ordens = oficina.ConsultarOrdens();
+        var veiculos = oficina.ConsultarVeiculos()
+            .ToDictionary(veiculo => veiculo.Id);
+
+        return View(new PainelOficinaViewModel(
+            ordens.Count(ordem => ordem.Status == StatusOrdem.Pendente),
+            ordens.Count(ordem => ordem.Status == StatusOrdem.EmAndamento),
+            ordens.Count(ordem => ordem.Status == StatusOrdem.Concluida),
+            ordens.Take(6).ToList(),
+            veiculos));
     }
 
     public IActionResult Privacy()
