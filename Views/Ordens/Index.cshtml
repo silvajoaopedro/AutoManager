@@ -1,0 +1,55 @@
+@model IEnumerable<AutoManager.Models.OrdemServico>
+@using AutoManager.Models
+@{
+    ViewData["Title"] = "Ordens de serviço";
+    var filtro = (StatusOrdem?)ViewBag.StatusSelecionado;
+}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div><h1 class="mb-1">Ordens de serviço</h1><p class="text-muted mb-0">Acompanhe o fluxo de atendimento da oficina.</p></div>
+    @if (User.IsInRole("Atendente"))
+    {
+        <a asp-action="Abrir" class="btn btn-primary">+ Nova ordem</a>
+    }
+</div>
+<form method="get" class="mb-3 d-flex align-items-end gap-2 flex-wrap">
+    <div>
+        <label for="status" class="form-label">Filtrar por status</label>
+        <select id="status" name="status" class="form-select">
+            <option value="">Todos os status</option>
+            @foreach (var item in Enum.GetValues<StatusOrdem>())
+            {
+                <option value="@((int)item)" selected="@(filtro == item)">@(item == StatusOrdem.EmAndamento ? "Em andamento" : item == StatusOrdem.Concluida ? "Concluída" : "Pendente")</option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+    <a asp-action="Index" class="btn btn-link">Limpar</a>
+</form>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Nenhuma ordem encontrada para o filtro selecionado.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead><tr><th>Número</th><th>Problema relatado</th><th>Abertura</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody>
+            @foreach (var ordem in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">#@ordem.Numero</td>
+                    <td>@ordem.ProblemaRelatado</td>
+                    <td>@ordem.DataAbertura.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>
+                        <span class="badge @(ordem.Status == StatusOrdem.Concluida ? "bg-success" : ordem.Status == StatusOrdem.EmAndamento ? "bg-primary" : "bg-secondary")">
+                            @(ordem.Status == StatusOrdem.EmAndamento ? "Em andamento" : ordem.Status == StatusOrdem.Concluida ? "Concluída" : "Pendente")
+                        </span>
+                    </td>
+                    <td><a asp-action="Detalhes" asp-route-numero="@ordem.Numero" class="btn btn-sm btn-outline-primary">Ver detalhes</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
