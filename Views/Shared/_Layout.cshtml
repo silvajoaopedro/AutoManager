@@ -1,118 +1,59 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - AutoManager</title>
-
     <script type="importmap"></script>
-
-    <link rel="stylesheet"
-          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-
-    <link rel="stylesheet"
-          href="~/css/site.css"
-          asp-append-version="true" />
-
-    <link rel="stylesheet"
-          href="~/AutoManager.styles.css"
-          asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/AutoManager.styles.css" asp-append-version="true" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand"
-                   asp-area=""
-                   asp-controller="Home"
-                   asp-action="Index">
-                    AutoManager
-                </a>
-
-                @if (User.Identity?.IsAuthenticated == true)
-                {
-                    <button class="navbar-toggler"
-                            type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#menuPrincipal"
-                            aria-controls="menuPrincipal"
-                            aria-expanded="false"
-                            aria-label="Abrir menu">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-
-                    <div class="collapse navbar-collapse"
-                         id="menuPrincipal">
-
-                        <ul class="navbar-nav me-auto">
-                            <li class="nav-item">
-                                <a class="nav-link text-dark"
-                                   asp-area=""
-                                   asp-controller="Home"
-                                   asp-action="Index">
-                                    Início
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Clientes" asp-action="Index">Clientes</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Veiculos" asp-action="Index">Veículos</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Ordens" asp-action="Index">Ordens de serviço</a>
-                            </li>
-                        </ul>
-
-                        <div class="d-flex flex-wrap align-items-center gap-3 py-2">
-                            <span class="text-muted">
-                                @User.Identity.Name
-                                —
-                                @(User.IsInRole("Atendente")
-                                    ? "Atendente"
-                                    : User.IsInRole("Mecanico")
-                                        ? "Mecânico"
-                                        : "Usuário")
-                            </span>
-
-                            <form asp-area=""
-                                  asp-controller="Conta"
-                                  asp-action="Sair"
-                                  method="post"
-                                  asp-antiforgery="true"
-                                  class="m-0">
-
-                                <button type="submit"
-                                        class="btn btn-outline-danger btn-sm">
-                                    Sair
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                }
+<body class="oficina">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        var modulo = ViewContext.RouteData.Values["controller"]?.ToString();
+        <aside class="offcanvas-lg offcanvas-start oficina-menu" tabindex="-1" id="menuOficina" aria-labelledby="marcaOficina">
+            <div class="oficina-marca" id="marcaOficina"><span aria-hidden="true">A</span> AutoManager</div>
+            <button class="btn-close btn-close-white d-lg-none oficina-fechar" type="button"
+                    data-bs-dismiss="offcanvas" data-bs-target="#menuOficina" aria-label="Fechar menu"></button>
+            <nav aria-label="Módulos da oficina">
+                <a asp-controller="Home" asp-action="Index" aria-current="@(modulo == "Home" ? "page" : null)">Visão geral</a>
+                <a asp-controller="Ordens" asp-action="Index" aria-current="@(modulo == "Ordens" ? "page" : null)">Ordens de serviço</a>
+                <a asp-controller="Veiculos" asp-action="Index" aria-current="@(modulo == "Veiculos" ? "page" : null)">Veículos</a>
+                <a asp-controller="Clientes" asp-action="Index" aria-current="@(modulo == "Clientes" ? "page" : null)">Clientes</a>
+            </nav>
+            <div class="oficina-perfil">
+                <strong>@User.Identity.Name</strong>
+                <span>@(User.IsInRole("Atendente") ? "Atendente" : "Mecânico")</span>
+                <form asp-controller="Conta" asp-action="Sair" method="post" asp-antiforgery="true">
+                    <button type="submit" class="btn btn-sm btn-outline-light">Sair</button>
+                </form>
             </div>
-        </nav>
-    </header>
-
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; @DateTime.Now.Year - AutoManager
+        </aside>
+        <div class="oficina-area">
+            <header class="oficina-topo">
+                <button class="btn oficina-menu-toggle d-lg-none" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#menuOficina" aria-controls="menuOficina" aria-label="Abrir menu">☰</button>
+                <span class="oficina-local">Oficina <span aria-hidden="true">/</span> <strong>@ViewData["Title"]</strong></span>
+                @if (User.IsInRole("Atendente"))
+                {
+                    <a class="btn oficina-nova" asp-controller="Ordens" asp-action="Abrir">
+                        <span aria-hidden="true">+</span> <span class="d-none d-sm-inline">Nova ordem de serviço</span><span class="d-sm-none">Nova OS</span>
+                    </a>
+                }
+            </header>
+            <main class="oficina-conteudo">@RenderBody()</main>
         </div>
-    </footer>
-
+    }
+    else
+    {
+        <header class="oficina-topo"><strong>AutoManager</strong></header>
+        <main class="container py-4">@RenderBody()</main>
+    }
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js"
-            asp-append-version="true"></script>
-
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

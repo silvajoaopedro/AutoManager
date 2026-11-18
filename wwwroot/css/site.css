@@ -29,3 +29,64 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+.oficina {
+  --oficina-menu: #19312b;
+  --oficina-fundo: #f4f5f0;
+  --oficina-borda: #e2e7de;
+  background: var(--oficina-fundo);
+  color: #243630;
+  margin-bottom: 0;
+}
+
+.oficina-menu {
+  --bs-offcanvas-width: 16rem;
+  background: var(--oficina-menu);
+  color: #f4f6ef;
+  padding: 1.5rem 1.125rem;
+}
+
+.oficina-marca { font-weight: 700; margin-bottom: 2.5rem; }
+.oficina-marca span {
+  display: inline-grid;
+  place-items: center;
+  background: #eab79e;
+  color: #253b32;
+  border-radius: .55rem;
+  width: 2rem;
+  height: 2rem;
+  margin-right: .45rem;
+}
+.oficina-menu nav { display: grid; gap: .35rem; }
+.oficina-menu nav a { color: #e0e9e1; text-decoration: none; padding: .75rem; border-radius: .55rem; }
+.oficina-menu nav a:hover,
+.oficina-menu nav a[aria-current="page"] { background: #324d41; color: #fff; }
+.oficina-fechar { position: absolute; right: 1rem; top: 1rem; }
+.oficina-perfil { margin-top: auto; border-top: 1px solid #4a6255; padding-top: 1rem; display: grid; gap: .4rem; }
+.oficina-perfil span { color: #cfdbd0; font-size: .85rem; }
+.oficina-topo {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-height: 4.2rem;
+  padding: .65rem clamp(.75rem, 3vw, 2.5rem);
+  background: #fff;
+  border-bottom: 1px solid var(--oficina-borda);
+}
+.oficina-local { flex: 1; min-width: 0; font-size: .9rem; }
+.oficina-local span { margin-inline: .35rem; color: #65756c; }
+.oficina-nova { background: var(--oficina-menu); color: #fff; white-space: nowrap; }
+.oficina-nova:hover { background: #324d41; color: #fff; }
+.oficina-conteudo { max-width: 92rem; margin-inline: auto; padding: clamp(1rem, 3vw, 2.5rem); }
+
+@media (min-width: 992px) {
+  .oficina-menu.offcanvas-lg {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 15rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background-color: var(--oficina-menu) !important;
+  }
+  .oficina-area { margin-left: 15rem; }
+}

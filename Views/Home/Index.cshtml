@@ -1,6 +1,8 @@
 @model PainelOficinaViewModel
 @{
-    ViewData["Title"] = "Painel da oficina";
+    ViewData["Title"] = "Visão geral";
+    var total = Model.Pendentes + Model.EmAndamento + Model.Concluidas;
+    var picoConclusoes = Math.Max(1, Model.ConclusoesPorDia.Max());
     var etapas = new[]
     {
         (Status: StatusOrdem.Pendente, Nome: "Pendentes", Total: Model.Pendentes, Cor: "warning"),
@@ -9,31 +11,35 @@
     };
 }
 
-<div class="py-3 py-md-4">
-    <header class="painel-cabecalho rounded-4 p-4 p-md-5 mb-4">
-        <h1 class="display-6 fw-bold mb-2">Painel da oficina</h1>
-        <p class="mb-4">Acompanhe as ordens de serviço da abertura à conclusão.</p>
-        <div class="d-flex flex-wrap gap-2">
-            @if (User.IsInRole("Atendente"))
-            {
-                <a class="btn btn-light fw-semibold" asp-controller="Ordens" asp-action="Abrir">Nova ordem de serviço</a>
-            }
-            <a class="btn btn-outline-light" asp-controller="Clientes" asp-action="Index">Clientes</a>
-            <a class="btn btn-outline-light" asp-controller="Veiculos" asp-action="Index">Veículos</a>
-        </div>
+<div class="painel">
+    <header class="painel-cabecalho mb-4">
+        <h1 class="display-6 fw-bold mb-1">Visão geral<span>.</span></h1>
+        <p class="text-muted mb-0">Acompanhe as ordens de serviço da abertura à conclusão.</p>
     </header>
 
     <section class="mb-4" aria-labelledby="titulo-fluxo">
-        <h2 id="titulo-fluxo" class="h5 mb-3">Fluxo das ordens de serviço</h2>
-        <div class="row row-cols-1 row-cols-md-3 g-3">
+        <h2 id="titulo-fluxo" class="visually-hidden">Indicadores das ordens de serviço</h2>
+        <div class="row row-cols-2 row-cols-xl-4 g-3">
+            <div class="col">
+                <a class="card painel-indicador h-100 text-decoration-none text-dark rounded-4"
+                   asp-controller="Ordens" asp-action="Index">
+                    <div class="card-body d-flex flex-column align-items-start gap-2 p-3 p-lg-4">
+                        <span class="fw-semibold">Total de ordens</span>
+                        <strong class="display-6 fw-bold lh-1">@total</strong>
+                    </div>
+                </a>
+            </div>
             @foreach (var etapa in etapas)
             {
                 <div class="col">
-                    <a class="card h-100 shadow-sm text-decoration-none text-dark border-top border-4 border-@etapa.Cor"
+                    <a class="card painel-indicador h-100 text-decoration-none text-dark rounded-4"
                        asp-controller="Ordens" asp-action="Index" asp-route-status="@etapa.Status">
-                        <div class="card-body d-flex justify-content-between align-items-center gap-2">
-                            <span class="fw-semibold">@etapa.Nome</span>
-                            <strong class="fs-3">@etapa.Total</strong>
+                        <div class="card-body d-flex flex-column align-items-start gap-2 p-3 p-lg-4">
+                            <span class="d-flex align-items-center gap-2 fw-semibold">
+                                <span class="painel-status bg-@etapa.Cor" aria-hidden="true"></span>
+                                @etapa.Nome
+                            </span>
+                            <strong class="display-6 fw-bold lh-1">@etapa.Total</strong>
                         </div>
                     </a>
                 </div>
@@ -41,15 +47,52 @@
         </div>
     </section>
 
-    <section class="card shadow-sm rounded-4 mb-4" aria-labelledby="titulo-recentes">
+    <div class="painel-resumo mb-4">
+    <section class="card painel-recentes rounded-4" aria-labelledby="titulo-etapas">
+        <div class="card-body p-3 p-md-4">
+            <h2 id="titulo-etapas" class="h5 mb-1">Fluxo das ordens</h2>
+            <p class="text-muted small mb-3">Da abertura à conclusão.</p>
+            <ol class="painel-etapas list-unstyled mb-0">
+                @foreach (var etapa in etapas)
+                {
+                    <li class="painel-etapa painel-etapa-@etapa.Cor">
+                        <strong>@etapa.Total</strong>
+                        <span>@etapa.Nome</span>
+                    </li>
+                }
+            </ol>
+        </div>
+    </section>
+
+    <section class="card painel-recentes rounded-4" aria-labelledby="titulo-ritmo">
+        <div class="card-body p-3 p-md-4">
+            <h2 id="titulo-ritmo" class="h5 mb-1">Ritmo da oficina</h2>
+            <p class="text-muted small">Conclusões nos últimos 7 dias</p>
+            <ul class="painel-grafico list-unstyled mb-0">
+                @for (var dia = 0; dia < Model.ConclusoesPorDia.Count; dia++)
+                {
+                    var quantidade = Model.ConclusoesPorDia[dia];
+                    var data = Model.InicioPeriodo.AddDays(dia);
+                    <li>
+                        <span class="small">@quantidade</span>
+                        <meter min="0" max="@picoConclusoes" value="@quantidade"
+                               aria-label="@data.ToString("dd/MM"): @quantidade ordens concluídas"></meter>
+                        <span class="small text-muted">@data.Day</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </section>
+    </div>
+
+    <section class="card painel-recentes rounded-4 mb-4" aria-labelledby="titulo-recentes">
         <div class="card-body p-3 p-md-4">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <h2 id="titulo-recentes" class="h5 mb-0">Ordens recentes</h2>
-                <a asp-controller="Ordens" asp-action="Index">Ver todas as ordens</a>
             </div>
             @if (Model.OrdensRecentes.Count == 0)
             {
-                <p class="text-muted mb-0">Ainda não há ordens de serviço cadastradas.</p>
+                <p class="painel-vazio text-muted mb-0">Ainda não há ordens de serviço cadastradas.</p>
             }
             else
             {
