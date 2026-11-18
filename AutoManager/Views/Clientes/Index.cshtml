@@ -74,7 +74,7 @@
                     {
                         var c = item.Cliente;
                         <tr data-am-href="@Url.Action("Details", new { id = c.Id })">
-                            <td data-label="Cliente">
+                            <td data-label="Cliente" class="span-2">
                                 <a asp-action="Details" asp-route-id="@c.Id" class="cell-title">@c.Nome</a>
                                 @if (!string.IsNullOrEmpty(c.Email))
                                 {

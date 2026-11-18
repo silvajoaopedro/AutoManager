@@ -68,8 +68,10 @@ body {
 
 h1, h2, h3, h4, h5, h6 { color: var(--am-text); letter-spacing: -0.015em; }
 
-a { color: var(--am-accent-hover); }
-a:hover { color: var(--am-accent); }
+a { color: var(--am-accent-hover); text-decoration: none; }
+a:hover { color: var(--am-accent); text-decoration: underline; text-underline-offset: 2px; }
+a.btn:hover, a.am-kpi:hover, a.am-queue-item:hover, a.am-nav-link:hover, a.am-brand:hover, a.am-tab:hover, a.cell-title:hover, a.os-num:hover { text-decoration: none; }
+.cell-sub { font-size: .82rem; color: var(--am-muted); }
 
 .text-muted, .am-muted { color: var(--am-muted) !important; }
 .tabular { font-variant-numeric: tabular-nums; }
@@ -319,7 +321,7 @@ a.am-kpi:hover { border-color: var(--am-border-strong); box-shadow: var(--am-sha
 }
 .placa::before { content: ""; display: block; height: 5px; background: #1f47b4; }
 .placa > span {
-    padding: .22rem .45rem .26rem; text-align: center;
+    padding: .22rem .45rem .26rem; text-align: center; white-space: nowrap;
     font-weight: 750; font-size: .86rem; letter-spacing: .09em; color: #141a26;
     font-variant-numeric: tabular-nums;
 }
@@ -343,7 +345,6 @@ a.am-kpi:hover { border-color: var(--am-border-strong); box-shadow: var(--am-sha
 .am-table .row-link { cursor: pointer; }
 .am-table .cell-title { font-weight: 600; color: var(--am-text); text-decoration: none; }
 .am-table a.cell-title:hover { color: var(--am-accent-hover); }
-.am-table .cell-sub { font-size: .82rem; color: var(--am-muted); }
 .am-table .os-num { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--am-text); text-decoration: none; white-space: nowrap; }
 .am-table .os-num:hover { color: var(--am-accent-hover); }
 .am-table .col-actions { text-align: right; white-space: nowrap; width: 1%; }
@@ -461,7 +462,7 @@ a.am-kpi:hover { border-color: var(--am-border-strong); box-shadow: var(--am-sha
 .am-queue-item:last-child { border-bottom: 0; }
 .am-queue-item:hover { background: #fafbfc; color: inherit; }
 .am-queue-main { flex: 1; min-width: 0; }
-.am-queue-title { font-weight: 650; }
+.am-queue-title { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .am-queue-desc { color: var(--am-muted); font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .am-meta-row { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; color: var(--am-muted); font-size: .85rem; }
@@ -597,7 +598,7 @@ a.am-kpi:hover { border-color: var(--am-border-strong); box-shadow: var(--am-sha
     .am-page-header { align-items: flex-start; }
     .am-page-header h1 { font-size: 1.35rem; }
     .am-page-actions { width: 100%; }
-    .am-page-actions .btn { flex: 1; }
+    .am-page-actions .btn { flex: 1 1 auto; white-space: nowrap; }
     .am-search { max-width: none; min-width: 0; width: 100%; }
     .am-toolbar { padding: .85rem 1rem; }
     .am-card-body { padding: 1rem; }
@@ -614,14 +615,18 @@ a.am-kpi:hover { border-color: var(--am-border-strong); box-shadow: var(--am-sha
     /* Tabelas viram cartões empilhados no celular */
     .am-table-stack thead { display: none; }
     .am-table-stack, .am-table-stack tbody, .am-table-stack tr, .am-table-stack td { display: block; width: 100%; }
-    .am-table-stack tr { padding: .85rem 1rem; border-bottom: 1px solid var(--am-border); }
-    .am-table-stack tbody tr:last-child { border-bottom: 0; }
-    .am-table-stack td { padding: .2rem 0; border: 0; }
-    .am-table-stack td[data-label]::before {
-        content: attr(data-label); display: block;
-        font-size: .68rem; text-transform: uppercase; letter-spacing: .07em; color: var(--am-muted); font-weight: 650;
+    .am-table-stack tr {
+        display: grid; grid-template-columns: 1fr 1fr; gap: .55rem 1rem;
+        padding: .9rem 1rem; border-bottom: 1px solid var(--am-border);
     }
-    .am-table-stack td.col-actions { text-align: left; width: 100%; padding-top: .5rem; }
+    .am-table-stack tbody tr:last-child { border-bottom: 0; }
+    .am-table-stack td { padding: 0; border: 0; min-width: 0; }
+    .am-table-stack td[data-label]::before {
+        content: attr(data-label); display: block; margin-bottom: .1rem;
+        font-size: .66rem; text-transform: uppercase; letter-spacing: .07em; color: var(--am-muted); font-weight: 650;
+    }
+    .am-table-stack td.span-2, .am-table-stack td.col-actions { grid-column: 1 / -1; }
+    .am-table-stack td.col-actions { text-align: left; width: 100%; }
     .am-table .text-truncate-2 { max-width: none; }
 }
 

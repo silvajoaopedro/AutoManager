@@ -2,6 +2,8 @@
 @{
     var ocultarCliente = ViewData["OcultarCliente"] as bool? ?? false;
     var ocultarVeiculo = ViewData["OcultarVeiculo"] as bool? ?? false;
+    // Versão compacta (dashboard): sem problema relatado e data de abertura
+    var compacta = ViewData["Compacta"] as bool? ?? false;
 }
 <div class="table-responsive">
     <table class="table am-table am-table-stack">
@@ -10,7 +12,7 @@
                 <th>Ordem</th>
                 @if (!ocultarVeiculo) { <th>Veículo</th> }
                 @if (!ocultarCliente) { <th>Cliente</th> }
-                <th>Problema relatado</th>
+                @if (!compacta) { <th>Problema relatado</th> }
                 <th>Abertura</th>
                 <th>Status</th>
                 <th class="col-actions"><span class="visually-hidden">Ações</span></th>
@@ -25,7 +27,7 @@
                     @if (!ocultarVeiculo)
                     {
                         <td data-label="Veículo">
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <partial name="_Placa" model="o.Placa" />
                                 <span class="cell-sub">@o.Veiculo</span>
                             </div>
@@ -35,7 +37,10 @@
                     {
                         <td data-label="Cliente"><span class="fw-semibold">@o.ClienteNome</span></td>
                     }
-                    <td data-label="Problema relatado"><span class="text-truncate-2">@o.DescricaoProblema</span></td>
+                    @if (!compacta)
+                    {
+                        <td data-label="Problema relatado" class="span-2"><span class="text-truncate-2">@o.DescricaoProblema</span></td>
+                    }
                     <td data-label="Abertura" class="cell-sub tabular" title="@Formatacao.DataHora(o.DataAbertura)">@Formatacao.Data(o.DataAbertura)</td>
                     <td data-label="Status"><partial name="_StatusBadge" model="o.Status" /></td>
                     <td class="col-actions">
