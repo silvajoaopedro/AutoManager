@@ -1,6 +1,6 @@
 using AutoManager.Models;
 
-namespace AutoManager.Data;
+namespace AutoManager.Persistencia;
 
 /// <summary>
 /// Unidade de trabalho sobre os arquivos JSON. Cada coleção é carregada do disco
@@ -39,14 +39,14 @@ public sealed class DataSession
     public int ProximoNumeroOrdem() =>
         Sequencias.OrdemServico = Math.Max(Sequencias.OrdemServico, Ordens.Select(o => o.Numero).DefaultIfEmpty().Max()) + 1;
 
-    private T Obter<T>(string arquivo) where T : new()
+    private T Obter<T>(string arquivo) where T : class, new()
     {
-        if (!_carregados.TryGetValue(arquivo, out var dados))
-        {
-            dados = JsonFile.Ler<T>(Path.Combine(_pasta, arquivo));
-            _carregados[arquivo] = dados;
-        }
-        return (T)dados;
+        if (_carregados.TryGetValue(arquivo, out var existente))
+            return (T)existente;
+
+        var dados = JsonFile.Ler<T>(Path.Combine(_pasta, arquivo));
+        _carregados[arquivo] = dados;
+        return dados;
     }
 
     internal void SalvarAlteracoes()

@@ -1,0 +1,78 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Entrar";
+    Layout = "_LayoutAuth";
+}
+<div class="am-auth">
+    <section class="am-auth-brand" aria-hidden="true">
+        <div class="am-auth-logo">
+            <img src="~/img/logo.svg" alt="" />
+            <div class="am-brand-name">Auto<span>Manager</span></div>
+        </div>
+
+        <div class="am-auth-headline">
+            <h1>Da recepção à entrega, <span>cada serviço</span> sob controle.</h1>
+            <p>Cadastre clientes e veículos, abra ordens de serviço e acompanhe cada etapa do atendimento na oficina.</p>
+            <div class="am-auth-flow">
+                <span><i class="dot" style="background:var(--am-pendente-border)"></i> Pendente</span>
+                <span><i class="dot" style="background:#7fa2f5"></i> Em andamento</span>
+                <span><i class="dot" style="background:#6fcf97"></i> Concluída</span>
+            </div>
+        </div>
+
+        <div class="am-auth-foot">AutoManager · Sistema de gerenciamento de oficina automotiva</div>
+    </section>
+
+    <section class="am-auth-form">
+        <div class="am-auth-card">
+            <div class="am-auth-mobile-logo">
+                <img src="~/img/logo.svg" alt="" />
+                <div class="am-brand-name">Auto<span>Manager</span></div>
+            </div>
+
+            <h2>Acesse sua conta</h2>
+            <p class="lead">Entre com o usuário e a senha fornecidos pela oficina.</p>
+
+            @if (TempData["Sucesso"] is string sucesso)
+            {
+                <div class="alert alert-success" role="status"><i class="bi bi-check-circle-fill"></i><div>@sucesso</div></div>
+            }
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <form asp-action="Login" method="post" novalidate data-am-once>
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                <div class="mb-3">
+                    <label asp-for="Login" class="form-label"></label>
+                    <input asp-for="Login" class="form-control" autocomplete="username" autofocus placeholder="Seu usuário" />
+                    <span asp-validation-for="Login"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Senha" class="form-label"></label>
+                    <div class="am-password">
+                        <input asp-for="Senha" class="form-control" autocomplete="current-password" placeholder="Sua senha" />
+                        <button type="button" data-am-password-toggle="Senha" aria-label="Mostrar senha"><i class="bi bi-eye"></i></button>
+                    </div>
+                    <span asp-validation-for="Senha"></span>
+                </div>
+
+                <div class="form-check mb-4">
+                    <input asp-for="Lembrar" class="form-check-input" />
+                    <label asp-for="Lembrar" class="form-check-label"></label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                    Entrar <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </form>
+
+            <p class="small text-muted mt-4 mb-0"><i class="bi bi-shield-lock me-1"></i>Acesso restrito a funcionários da oficina.</p>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

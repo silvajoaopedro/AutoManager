@@ -1,4 +1,4 @@
-namespace AutoManager.Data;
+namespace AutoManager.Persistencia;
 
 public class JsonDataOptions
 {

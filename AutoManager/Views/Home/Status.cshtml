@@ -1,0 +1,11 @@
+@{
+    var codigo = ViewData["Codigo"] as int? ?? 0;
+    ViewData["Title"] = codigo == 404 ? "Página não encontrada" : "Erro " + codigo;
+    Layout = User.Identity?.IsAuthenticated == true ? "_Layout" : "_LayoutAuth";
+}
+<div class="am-error-page px-3">
+    <div class="code">@codigo</div>
+    <h1 class="h4 mt-3">@(codigo == 404 ? "Página ou registro não encontrado" : "Não foi possível processar a solicitação")</h1>
+    <p class="text-muted">@(codigo == 404 ? "O endereço acessado não existe ou o registro foi removido." : "Verifique os dados e tente novamente.")</p>
+    <a class="btn btn-primary mt-2" asp-controller="Home" asp-action="Index"><i class="bi bi-house"></i> Voltar ao início</a>
+</div>

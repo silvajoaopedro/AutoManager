@@ -1,44 +1,81 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@{
+    var usuario = User.ObterUsuario();
+    var controlador = ViewContext.RouteData.Values["controller"]?.ToString();
+    var acao = ViewContext.RouteData.Values["action"]?.ToString();
+    string Ativo(string c) => string.Equals(controlador, c, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - AutoManager</title>
-    <script type="importmap"></script>
+    <meta name="theme-color" content="#141925" />
+    <title>@ViewData["Title"] · AutoManager</title>
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/fonts.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/AutoManager.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">AutoManager</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                    </ul>
+    <div class="am-shell">
+        <aside class="am-sidebar" id="am-sidebar" aria-label="Menu principal">
+            <a class="am-brand" asp-controller="Home" asp-action="Index">
+                <img src="~/img/logo.svg" alt="" />
+                <div class="am-brand-name">Auto<span>Manager</span><small class="am-brand-sub">Gestão de oficina</small></div>
+            </a>
+
+            <nav class="am-nav">
+                <div class="am-nav-label">Principal</div>
+                <a class="am-nav-link @Ativo("Home")" asp-controller="Home" asp-action="Index"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                <a class="am-nav-link @Ativo("Clientes")" asp-controller="Clientes" asp-action="Index"><i class="bi bi-people"></i> Clientes</a>
+                <a class="am-nav-link @Ativo("Veiculos")" asp-controller="Veiculos" asp-action="Index"><i class="bi bi-car-front"></i> Veículos</a>
+                <a class="am-nav-link @Ativo("OrdensServico")" asp-controller="OrdensServico" asp-action="Index"><i class="bi bi-clipboard2-check"></i> Ordens de Serviço</a>
+                <a class="am-nav-link @Ativo("Historico")" asp-controller="Historico" asp-action="Index"><i class="bi bi-clock-history"></i> Histórico</a>
+
+                @if (User.EhAtendente())
+                {
+                    <div class="am-nav-label">Atendimento</div>
+                    <a class="am-nav-link" asp-controller="Clientes" asp-action="Create"><i class="bi bi-person-plus"></i> Novo cliente</a>
+                    <a class="am-nav-link" asp-controller="OrdensServico" asp-action="Create"><i class="bi bi-plus-square"></i> Nova ordem</a>
+                }
+            </nav>
+
+            <div class="am-sidebar-footer">
+                <div class="am-user">
+                    <span class="am-avatar @(usuario.Perfil == PerfilUsuario.Atendente ? "atendente" : "mecanico")">@Formatacao.Iniciais(usuario.Nome)</span>
+                    <div class="min-w-0">
+                        <div class="am-user-name text-truncate">@usuario.Nome</div>
+                        <div class="am-user-role">@usuario.Perfil.Nome()</div>
+                    </div>
                 </div>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="am-logout"><i class="bi bi-box-arrow-left"></i> Sair</button>
+                </form>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+        </aside>
+        <div class="am-backdrop" data-am-close-sidebar></div>
+
+        <div class="am-main">
+            <header class="am-topbar">
+                <button type="button" class="btn btn-outline-secondary btn-icon am-menu-toggle" data-am-toggle-sidebar
+                        aria-controls="am-sidebar" aria-expanded="false" aria-label="Abrir menu">
+                    <i class="bi bi-list"></i>
+                </button>
+                <span class="am-topbar-title text-truncate">@ViewData["Title"]</span>
+                <span class="ms-auto am-topbar-date d-none d-sm-inline"><i class="bi bi-calendar3 me-1"></i>@Formatacao.DataExtenso(DateTime.Now)</span>
+                <span class="status-badge d-none d-md-inline-flex" style="background:#eef0f4;color:var(--am-text-2);border-color:var(--am-border)">
+                    <i class="bi @(usuario.Perfil == PerfilUsuario.Atendente ? "bi-headset" : "bi-wrench-adjustable")"></i> @usuario.Perfil.Nome()
+                </span>
+            </header>
+
+            <main class="am-content" id="conteudo">
+                <partial name="_Alertas" />
+                @RenderBody()
+            </main>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - AutoManager - 
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

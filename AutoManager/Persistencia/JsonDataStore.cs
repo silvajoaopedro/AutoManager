@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace AutoManager.Data;
+namespace AutoManager.Persistencia;
 
 /// <summary>
 /// Ponto único de acesso aos arquivos JSON. Registrado como singleton:

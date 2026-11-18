@@ -3,7 +3,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace AutoManager.Data;
+namespace AutoManager.Persistencia;
 
 /// <summary>
 /// Leitura e gravação segura de um arquivo JSON.
@@ -21,7 +21,7 @@ public static class JsonFile
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public static T Ler<T>(string caminho) where T : new()
+    public static T Ler<T>(string caminho) where T : class, new()
     {
         if (!File.Exists(caminho))
             return new T();
