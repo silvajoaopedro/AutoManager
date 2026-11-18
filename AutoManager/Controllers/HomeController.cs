@@ -19,6 +19,7 @@ public class HomeController : Controller
     }
 
     [AllowAnonymous]
+    [IgnoreAntiforgeryToken]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

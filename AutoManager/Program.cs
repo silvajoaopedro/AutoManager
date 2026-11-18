@@ -65,9 +65,11 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedUICultures = [culturaPadrao]
 });
 
+// RNF-12: falhas inesperadas exibem uma página genérica, sem stack trace nem caminhos internos
+app.UseExceptionHandler("/Home/Error");
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
     app.UseHttpsRedirection();
 }
