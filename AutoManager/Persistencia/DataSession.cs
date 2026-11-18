@@ -21,7 +21,7 @@ public sealed class DataSession
                 Clientes = JsonFile.Ler<List<Cliente>>(Path.Combine(pasta, "clientes.json")),
                 Veiculos = JsonFile.Ler<List<Veiculo>>(Path.Combine(pasta, "veiculos.json")),
                 Ordens = JsonFile.Ler<List<OrdemServico>>(Path.Combine(pasta, "ordens.json")),
-                Sequencias = JsonFile.Ler<Sequencias>(Path.Combine(pasta, "sequencias.json"))
+                Sequencias = JsonFile.Ler<Sequencia>(Path.Combine(pasta, "sequencias.json"))
             };
     }
 
@@ -29,7 +29,7 @@ public sealed class DataSession
     public List<Cliente> Clientes => _estado.Clientes;
     public List<Veiculo> Veiculos => _estado.Veiculos;
     public List<OrdemServico> Ordens => _estado.Ordens;
-    private Sequencias Sequencias => _estado.Sequencias;
+    private Sequencia Sequencias => _estado.Sequencias;
 
     public int ProximoIdUsuario() =>
         Sequencias.Usuario = Math.Max(Sequencias.Usuario, Usuarios.Select(u => u.Id).DefaultIfEmpty().Max()) + 1;
@@ -56,5 +56,5 @@ internal sealed class EstadoOficina
     public List<Cliente> Clientes { get; set; } = [];
     public List<Veiculo> Veiculos { get; set; } = [];
     public List<OrdemServico> Ordens { get; set; } = [];
-    public Sequencias Sequencias { get; set; } = new();
+    public Sequencia Sequencias { get; set; } = new();
 }
