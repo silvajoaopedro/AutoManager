@@ -2,7 +2,9 @@
 
 Sistema web de gerenciamento de oficina automotiva: cadastro de clientes e veículos, abertura e acompanhamento de ordens de serviço, atualização de status, registro de observações e histórico de serviços.
 
-Trabalho da disciplina **Análise e Projeto de Sistemas**.
+Trabalho da disciplina **Análise e Projeto de Sistemas** — Unifran, 2026.
+
+**Integrante:** João Pedro da Silva
 
 ## Tecnologias
 
