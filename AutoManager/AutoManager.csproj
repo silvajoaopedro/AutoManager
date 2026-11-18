@@ -4,6 +4,13 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>AutoManager</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Os arquivos de dados são criados em tempo de execução e não fazem parte da publicação -->
+    <Content Remove="Data\**" />
+    <None Remove="Data\**" />
+  </ItemGroup>
 
 </Project>
