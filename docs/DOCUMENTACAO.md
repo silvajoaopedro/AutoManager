@@ -430,11 +430,11 @@ Os atores Atendente e Mecânico ficarão fora da fronteira do sistema AutoManage
 Atendente será associado a todos os casos de uso do catálogo. O Mecânico será associado
 a UC01, UC02, UC03, UC05, UC09, UC13, UC14, UC15 e UC16.
 
-A autenticação será pré-condição dos casos internos. A observação exigida ao concluir uma
-ordem será parte do fluxo de UC14; não haverá include entre UC14 e UC15, pois a
-passagem de Pendente para Em andamento não exige observação. UC15 permitirá registrar
-observação sem alterar o status. Não se utilizarão extend ou generalização sem necessidade
-no modelo.
+A autenticação será pré-condição dos casos internos. A observação exigida na conclusão faz
+parte do fluxo de UC14; UC15 registra observação sem alterar o status, sem include entre eles.
+UC08 estende UC04 no ponto de extensão “após salvar cliente” (Salvar e cadastrar veículo), e
+UC12 estende UC08 em “após salvar veículo” (Continuar para abertura da OS); ambas são
+opcionais. Não há generalização no modelo.
 
 
 ## 3.5 - UC04 Cadastrar cliente
