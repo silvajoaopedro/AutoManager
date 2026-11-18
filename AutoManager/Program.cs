@@ -24,6 +24,7 @@ builder.Services.AddSingleton<ClienteService>();
 builder.Services.AddSingleton<VeiculoService>();
 builder.Services.AddSingleton<OrdemServicoService>();
 builder.Services.AddSingleton<HistoricoService>();
+builder.Services.AddSingleton<DashboardService>();
 
 // ---------------------------------------------------------------------------
 // Autenticação por cookie e autorização por perfil (RN01, RN02)

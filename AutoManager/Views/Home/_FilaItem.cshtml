@@ -1,0 +1,9 @@
+@model OrdemResumo
+<a class="am-queue-item" asp-controller="OrdensServico" asp-action="Details" asp-route-id="@Model.Numero">
+    <partial name="_Placa" model="Model.Placa" />
+    <div class="am-queue-main">
+        <div class="am-queue-title">@Model.NumeroFormatado <span class="cell-sub fw-normal">· @Model.Veiculo</span></div>
+        <div class="am-queue-desc">@Model.DescricaoProblema</div>
+    </div>
+    <span class="cell-sub text-nowrap" title="@Formatacao.DataHora(Model.DataAbertura)">@Formatacao.Relativo(Model.DataAbertura)</span>
+</a>

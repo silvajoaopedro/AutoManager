@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using AutoManager.Models;
+using AutoManager.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,9 +8,14 @@ namespace AutoManager.Controllers;
 
 public class HomeController : Controller
 {
-    public IActionResult Index()
+    private readonly DashboardService _dashboard;
+
+    public HomeController(DashboardService dashboard) => _dashboard = dashboard;
+
+    /// <summary>Dashboard operacional.</summary>
+    public async Task<IActionResult> Index()
     {
-        return View();
+        return View(await _dashboard.ObterAsync());
     }
 
     [AllowAnonymous]

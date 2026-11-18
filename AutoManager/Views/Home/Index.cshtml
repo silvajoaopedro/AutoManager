@@ -1,9 +1,142 @@
+@model DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
+    var usuario = User.ObterUsuario();
+    var atendente = User.EhAtendente();
+    var hora = DateTime.Now.Hour;
+    var saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+    var primeiroNome = usuario.Nome.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? usuario.Nome;
 }
 <div class="am-page-header">
     <div>
-        <h1>Olá, @User.ObterUsuario().Nome</h1>
-        <p>Você está conectado como @User.ObterUsuario().Perfil.Nome().</p>
+        <h1>@saudacao, @primeiroNome</h1>
+        <p>
+            @if (Model.Pendentes == 0 && Model.EmAndamento == 0)
+            {
+                <text>Nenhum serviço em aberto no momento.</text>
+            }
+            else
+            {
+                <text>@Model.Pendentes aguardando início · @Model.EmAndamento em execução · @Model.ConcluidasHoje concluída(s) hoje.</text>
+            }
+        </p>
+    </div>
+    <div class="am-page-actions">
+        @if (atendente)
+        {
+            <a asp-controller="Clientes" asp-action="Create" class="btn btn-outline-secondary"><i class="bi bi-person-plus"></i> Novo cliente</a>
+            <a asp-controller="OrdensServico" asp-action="Create" class="btn btn-primary"><i class="bi bi-clipboard2-plus"></i> Abrir ordem de serviço</a>
+        }
+        else
+        {
+            <a asp-controller="OrdensServico" asp-action="Index" asp-route-status="@StatusOrdem.Pendente" class="btn btn-primary"><i class="bi bi-list-task"></i> Ver fila de serviços</a>
+        }
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <a class="am-card am-kpi total" asp-controller="OrdensServico" asp-action="Index">
+            <span class="am-kpi-icon"><i class="bi bi-clipboard2-data"></i></span>
+            <div><div class="am-kpi-label">Total de ordens</div><div class="am-kpi-value">@Model.TotalOrdens</div></div>
+        </a>
+    </div>
+    <div class="col-6 col-xl-3">
+        <a class="am-card am-kpi pendente" asp-controller="OrdensServico" asp-action="Index" asp-route-status="@StatusOrdem.Pendente">
+            <span class="am-kpi-icon"><i class="bi @StatusOrdem.Pendente.Icone()"></i></span>
+            <div><div class="am-kpi-label">Pendentes</div><div class="am-kpi-value">@Model.Pendentes</div></div>
+        </a>
+    </div>
+    <div class="col-6 col-xl-3">
+        <a class="am-card am-kpi andamento" asp-controller="OrdensServico" asp-action="Index" asp-route-status="@StatusOrdem.EmAndamento">
+            <span class="am-kpi-icon"><i class="bi @StatusOrdem.EmAndamento.Icone()"></i></span>
+            <div><div class="am-kpi-label">Em andamento</div><div class="am-kpi-value">@Model.EmAndamento</div></div>
+        </a>
+    </div>
+    <div class="col-6 col-xl-3">
+        <a class="am-card am-kpi concluida" asp-controller="OrdensServico" asp-action="Index" asp-route-status="@StatusOrdem.Concluida">
+            <span class="am-kpi-icon"><i class="bi @StatusOrdem.Concluida.Icone()"></i></span>
+            <div><div class="am-kpi-label">Concluídas</div><div class="am-kpi-value">@Model.Concluidas</div></div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-xl-8 @(atendente ? "" : "order-2")">
+        <div class="am-card mb-3">
+            <div class="am-card-header">
+                <h2><i class="bi bi-clock"></i> Ordens recentes</h2>
+                <a asp-controller="OrdensServico" asp-action="Index" class="small fw-semibold text-decoration-none">Ver todas <i class="bi bi-arrow-right"></i></a>
+            </div>
+            @if (Model.Recentes.Count == 0)
+            {
+                <div class="am-empty">
+                    <i class="bi bi-clipboard2"></i>
+                    <h3>Nenhuma ordem de serviço registrada</h3>
+                    @if (atendente)
+                    {
+                        <p>Comece pelo cadastro do cliente e do veículo.</p>
+                        <a asp-controller="Clientes" asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Iniciar atendimento</a>
+                    }
+                    else
+                    {
+                        <p>As ordens abertas pela atendente aparecerão aqui.</p>
+                    }
+                </div>
+            }
+            else
+            {
+                <partial name="_OrdensTabela" model="Model.Recentes" />
+            }
+        </div>
+    </div>
+
+    <div class="col-xl-4 @(atendente ? "" : "order-1")">
+        <div class="am-card mb-3">
+            <div class="am-card-body">
+                <h2 class="h6 fw-bold mb-2"><i class="bi bi-search me-1"></i> Consultar veículo pela placa</h2>
+                <form asp-controller="Veiculos" asp-action="Index" method="get" class="d-flex gap-2">
+                    <input name="busca" class="form-control input-placa" placeholder="ABC1D23" maxlength="8" data-am-mask="placa" aria-label="Placa" />
+                    <button class="btn btn-dark" type="submit">Buscar</button>
+                </form>
+                <div class="small text-muted mt-2">@Model.TotalClientes cliente(s) · @Model.TotalVeiculos veículo(s) cadastrados</div>
+            </div>
+        </div>
+
+        <div class="am-card mb-3">
+            <div class="am-card-header">
+                <h2><i class="bi @StatusOrdem.Pendente.Icone()" style="color:var(--am-pendente)"></i> Aguardando início</h2>
+                <span class="status-badge status-pendente">@Model.Pendentes</span>
+            </div>
+            @if (Model.FilaPendentes.Count == 0)
+            {
+                <div class="am-card-body small text-muted">Nenhuma ordem pendente.</div>
+            }
+            else
+            {
+                @foreach (var o in Model.FilaPendentes)
+                {
+                    <partial name="_FilaItem" model="o" />
+                }
+            }
+        </div>
+
+        <div class="am-card">
+            <div class="am-card-header">
+                <h2><i class="bi @StatusOrdem.EmAndamento.Icone()" style="color:var(--am-andamento)"></i> Em execução</h2>
+                <span class="status-badge status-andamento">@Model.EmAndamento</span>
+            </div>
+            @if (Model.EmExecucao.Count == 0)
+            {
+                <div class="am-card-body small text-muted">Nenhum serviço em execução.</div>
+            }
+            else
+            {
+                @foreach (var o in Model.EmExecucao)
+                {
+                    <partial name="_FilaItem" model="o" />
+                }
+            }
+        </div>
     </div>
 </div>
