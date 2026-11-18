@@ -13,7 +13,14 @@
                 <div class="fw-semibold">@Model.ClienteSelecionado.Nome</div>
                 <div class="small text-muted">@Formatacao.Telefone(Model.ClienteSelecionado.Telefone)</div>
             </div>
-            <a asp-action="Create" class="btn btn-sm btn-outline-secondary">Trocar cliente</a>
+            @if (Model.Id == 0)
+            {
+                <a asp-action="Create" class="btn btn-sm btn-outline-secondary">Trocar cliente</a>
+            }
+            else
+            {
+                <span class="small text-muted">O proprietário não pode ser alterado.</span>
+            }
         </div>
     }
     else

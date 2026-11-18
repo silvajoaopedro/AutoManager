@@ -61,7 +61,7 @@ public class VeiculoTestes : ContextoServicos
         Verificar.Verdadeiro(r.Sucesso, r.Mensagem ?? "");
         var v = await Veiculos.ObterAsync(id);
         Verificar.Igual("Onix", v!.Modelo, "Modelo editado");
-        Verificar.Igual(outroCliente, v.ClienteId, "Proprietário alterado");
+        Verificar.Igual(cliente, v.ClienteId, "Proprietário preservado na edição (RN-10)");
     }
 
     [Teste("veículo com ordens não pode ser excluído; sem ordens pode")]

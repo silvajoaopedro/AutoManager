@@ -124,7 +124,7 @@ public class ClienteService
     {
         var veiculos = s.Veiculos.Count(v => v.ClienteId == clienteId);
         if (veiculos > 0)
-            return $"Este cliente possui {veiculos} veículo(s) vinculado(s). Para preservar o histórico, exclua ou transfira os veículos antes de excluir o cliente.";
+            return $"Este cliente possui {veiculos} veículo(s) vinculado(s). Para preservar o histórico, exclua os veículos antes de excluir o cliente.";
 
         var ordens = s.Ordens.Count(o => o.ClienteId == clienteId);
         if (ordens > 0)

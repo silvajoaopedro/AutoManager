@@ -82,6 +82,7 @@ public class VeiculosController : Controller
         var veiculo = await _veiculos.ObterAsync(id);
         if (veiculo is null) return NotFound();
         var form = VeiculoFormViewModel.De(veiculo);
+        form.ClienteFixo = true;
         await PrepararFormularioAsync(form);
         return View(form);
     }
@@ -90,9 +91,14 @@ public class VeiculosController : Controller
     [HttpPost]
     public async Task<IActionResult> Edit(int id, VeiculoFormViewModel form)
     {
+        var atual = await _veiculos.ObterAsync(id);
+        if (atual is null) return NotFound();
+
+        // RN-10: o proprietário não pode ser alterado na edição.
         form.Id = id;
-        form.ClienteFixo = false;
-        if (await _veiculos.ObterAsync(id) is null) return NotFound();
+        form.ClienteId = atual.ClienteId;
+        form.ClienteFixo = true;
+        ModelState.Remove(nameof(form.ClienteId));
 
         if (!ModelState.IsValid)
         {

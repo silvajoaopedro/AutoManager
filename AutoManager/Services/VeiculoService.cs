@@ -84,6 +84,9 @@ public class VeiculoService
         var veiculo = s.Veiculos.FirstOrDefault(v => v.Id == id);
         if (veiculo is null) return Resultado<Veiculo>.Inexistente("Veículo não encontrado.");
 
+        // RN-10: a edição preserva o proprietário, mesmo que outro cliente seja enviado.
+        form.ClienteId = veiculo.ClienteId;
+
         var erro = Validar(s, form, idAtual: id, out var dados);
         if (erro is not null) return erro;
 
@@ -92,7 +95,6 @@ public class VeiculoService
         veiculo.Modelo = dados.Modelo;
         veiculo.Ano = dados.Ano;
         veiculo.Cor = dados.Cor;
-        veiculo.ClienteId = dados.ClienteId;
         veiculo.DataAtualizacao = DateTime.Now;
         return Resultado<Veiculo>.Ok(veiculo, "Dados do veículo atualizados.");
     }, r => r.Sucesso);
