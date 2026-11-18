@@ -1,0 +1,91 @@
+@model OrdemDetalhesViewModel
+@{
+    var o = Model.Ordem;
+    ViewData["Title"] = o.NumeroFormatado;
+}
+<div class="am-page-header">
+    <div>
+        <div class="am-breadcrumb"><a asp-action="Index">Ordens de Serviço</a><i class="bi bi-chevron-right"></i>Detalhes</div>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <h1 class="tabular">@o.NumeroFormatado</h1>
+            <partial name="_StatusBadge" model="o.Status" view-data='new ViewDataDictionary(ViewData) { ["Tamanho"] = "lg" }' />
+        </div>
+        <div class="am-meta-row mt-1">
+            <span><i class="bi bi-calendar-plus"></i>Aberta em @Formatacao.DataHora(o.DataAbertura)</span>
+            <span><i class="bi bi-person-badge"></i>por @o.AbertaPorNome</span>
+        </div>
+    </div>
+</div>
+
+<div class="am-card am-card-body mb-3">
+    <partial name="_Progresso" model="o" />
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8 order-2 order-lg-1">
+        <div class="am-card mb-3">
+            <div class="am-card-header"><h2><i class="bi bi-chat-left-text"></i> Problema relatado</h2></div>
+            <div class="am-card-body">
+                <p class="am-quote">@o.DescricaoProblema</p>
+            </div>
+        </div>
+
+        <div class="am-card" id="observacoes">
+            <div class="am-card-header">
+                <h2><i class="bi bi-journal-text"></i> Observações</h2>
+                <span class="small text-muted">@o.Observacoes.Count registro(s)</span>
+            </div>
+            <div class="am-card-body">
+                @if (o.Observacoes.Count == 0)
+                {
+                    <p class="text-muted mb-0">Nenhuma observação registrada até o momento.</p>
+                }
+                else
+                {
+                    <ul class="am-timeline">
+                        @foreach (var obs in o.Observacoes.OrderBy(x => x.DataHora))
+                        {
+                            var conclusao = obs.Tipo == TipoObservacao.Conclusao;
+                            <li>
+                                <span class="am-timeline-dot @(conclusao ? "concluida" : "")"><i class="bi @(conclusao ? "bi-flag-fill" : obs.UsuarioPerfil == PerfilUsuario.Mecanico ? "bi-wrench-adjustable" : "bi-headset")"></i></span>
+                                <div class="am-timeline-meta"><strong>@obs.UsuarioNome</strong> · @obs.UsuarioPerfil.Nome() · @Formatacao.DataHora(obs.DataHora)@(conclusao ? " · Observação de conclusão" : "")</div>
+                                <div class="am-timeline-text @(conclusao ? "conclusao" : "")">@obs.Texto</div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 order-1 order-lg-2">
+        <div class="am-card">
+            <div class="am-card-header"><h2><i class="bi bi-car-front"></i> Veículo e cliente</h2></div>
+            <div class="am-card-body">
+                @if (Model.Veiculo is { } v)
+                {
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <partial name="_Placa" model="v.Placa" view-data='new ViewDataDictionary(ViewData) { ["Tamanho"] = "lg" }' />
+                        <div>
+                            <a asp-controller="Veiculos" asp-action="Details" asp-route-id="@v.Id" class="fw-bold text-decoration-none" style="color:var(--am-text)">@v.Marca @v.Modelo</a>
+                            <div class="small text-muted">@(v.Ano?.ToString() ?? "")@(v.Ano.HasValue && !string.IsNullOrEmpty(v.Cor) ? " · " : "")@v.Cor</div>
+                        </div>
+                    </div>
+                }
+                <dl class="am-dl">
+                    <dt>Cliente</dt>
+                    <dd>
+                        @if (Model.Cliente is { } c)
+                        {
+                            <a asp-controller="Clientes" asp-action="Details" asp-route-id="@c.Id">@c.Nome</a>
+                        }
+                        else { <span>—</span> }
+                    </dd>
+                    <dt>Telefone</dt><dd class="tabular">@(Model.Cliente is null ? "—" : Formatacao.Telefone(Model.Cliente.Telefone))</dd>
+                    <dt>Histórico</dt>
+                    <dd><a asp-controller="Veiculos" asp-action="Details" asp-route-id="@o.VeiculoId" asp-fragment="historico">@Model.TotalOrdensVeiculo ordem(ns) do veículo</a></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>

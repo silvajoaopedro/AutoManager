@@ -1,0 +1,21 @@
+@model OrdemServico
+@{
+    var etapas = new[]
+    {
+        (Status: StatusOrdem.Pendente, Css: "pendente", Data: (DateTime?)Model.DataAbertura),
+        (Status: StatusOrdem.EmAndamento, Css: "andamento", Data: Model.DataInicio),
+        (Status: StatusOrdem.Concluida, Css: "concluida", Data: Model.DataConclusao)
+    };
+}
+<div class="am-steps" aria-label="Progresso da ordem">
+    @for (var i = 0; i < etapas.Length; i++)
+    {
+        var e = etapas[i];
+        var estado = e.Status < Model.Status ? "done" : e.Status == Model.Status ? "current " + e.Css : "";
+        <div class="am-step @estado">
+            <span class="am-step-dot">@if (e.Status < Model.Status) { <i class="bi bi-check-lg"></i> } else { <i class="bi @e.Status.Icone()"></i> }</span>
+            <span class="am-step-label">@e.Status.Nome()<small>@(e.Data.HasValue ? Formatacao.DataHora(e.Data) : "—")</small></span>
+            @if (i < etapas.Length - 1) { <span class="am-step-line"></span> }
+        </div>
+    }
+</div>

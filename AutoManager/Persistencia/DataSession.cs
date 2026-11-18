@@ -39,6 +39,10 @@ public sealed class DataSession
     public int ProximoNumeroOrdem() =>
         Sequencias.OrdemServico = Math.Max(Sequencias.OrdemServico, Ordens.Select(o => o.Numero).DefaultIfEmpty().Max()) + 1;
 
+    /// <summary>Número que a próxima ordem receberá, sem reservá-lo.</summary>
+    public int ConsultarProximoNumeroOrdem() =>
+        Math.Max(Sequencias.OrdemServico, Ordens.Select(o => o.Numero).DefaultIfEmpty().Max()) + 1;
+
     private T Obter<T>(string arquivo) where T : class, new()
     {
         if (_carregados.TryGetValue(arquivo, out var existente))

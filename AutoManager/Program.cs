@@ -22,6 +22,7 @@ builder.Services.AddSingleton<JsonDataStore>();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<ClienteService>();
 builder.Services.AddSingleton<VeiculoService>();
+builder.Services.AddSingleton<OrdemServicoService>();
 
 // ---------------------------------------------------------------------------
 // Autenticação por cookie e autorização por perfil (RN01, RN02)

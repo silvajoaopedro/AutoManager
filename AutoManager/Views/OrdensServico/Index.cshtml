@@ -1,0 +1,53 @@
+@model OrdemListaViewModel
+@{
+    ViewData["Title"] = "Ordens de Serviço";
+    string Aba(StatusOrdem? s) => Model.Status == s ? "active" : "";
+}
+<div class="am-page-header">
+    <div>
+        <h1>Ordens de Serviço</h1>
+        <p>Acompanhe as solicitações da abertura à conclusão.</p>
+    </div>
+    @if (User.EhAtendente())
+    {
+        <div class="am-page-actions">
+            <a asp-action="Create" class="btn btn-primary"><i class="bi bi-clipboard2-plus"></i> Nova ordem de serviço</a>
+        </div>
+    }
+</div>
+
+<div class="am-card">
+    <div class="am-toolbar">
+        <nav class="am-tabs" aria-label="Filtrar por status">
+            <a class="am-tab @Aba(null)" asp-action="Index" asp-route-busca="@Model.Busca">Todas <span class="count">@Model.Total</span></a>
+            <a class="am-tab @Aba(StatusOrdem.Pendente)" asp-action="Index" asp-route-status="@StatusOrdem.Pendente" asp-route-busca="@Model.Busca"><i class="bi @StatusOrdem.Pendente.Icone()"></i> Pendentes <span class="count">@Model.Pendentes</span></a>
+            <a class="am-tab @Aba(StatusOrdem.EmAndamento)" asp-action="Index" asp-route-status="@StatusOrdem.EmAndamento" asp-route-busca="@Model.Busca"><i class="bi @StatusOrdem.EmAndamento.Icone()"></i> Em andamento <span class="count">@Model.EmAndamento</span></a>
+            <a class="am-tab @Aba(StatusOrdem.Concluida)" asp-action="Index" asp-route-status="@StatusOrdem.Concluida" asp-route-busca="@Model.Busca"><i class="bi @StatusOrdem.Concluida.Icone()"></i> Concluídas <span class="count">@Model.Concluidas</span></a>
+        </nav>
+        <form method="get" asp-action="Index" class="am-search">
+            @if (Model.Status.HasValue)
+            {
+                <input type="hidden" name="status" value="@Model.Status" />
+            }
+            <i class="bi bi-search"></i>
+            <input type="search" name="busca" value="@Model.Busca" class="form-control" placeholder="Nº da OS, placa, cliente ou problema" aria-label="Buscar ordens" />
+        </form>
+    </div>
+
+    @if (Model.Itens.Count == 0)
+    {
+        <div class="am-empty">
+            <i class="bi bi-clipboard2"></i>
+            <h3>Nenhuma ordem encontrada</h3>
+            <p>@(Model.Total == 0 ? "As ordens de serviço abertas aparecerão aqui." : "Ajuste o filtro ou a busca.")</p>
+            @if (Model.Total == 0 && User.EhAtendente())
+            {
+                <a asp-action="Create" class="btn btn-primary"><i class="bi bi-clipboard2-plus"></i> Abrir primeira ordem</a>
+            }
+        </div>
+    }
+    else
+    {
+        <partial name="_OrdensTabela" model="Model.Itens" />
+    }
+</div>

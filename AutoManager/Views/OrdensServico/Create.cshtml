@@ -1,0 +1,133 @@
+@model AbrirOrdemViewModel
+@{
+    ViewData["Title"] = "Abrir ordem de serviço";
+    var sel = Model.VeiculoSelecionado;
+}
+<div class="am-page-header">
+    <div>
+        <div class="am-breadcrumb"><a asp-action="Index">Ordens de Serviço</a><i class="bi bi-chevron-right"></i>Nova ordem</div>
+        <h1>Abrir ordem de serviço</h1>
+        <p>Registre a solicitação do cliente. A ordem será criada com status <strong>Pendente</strong>.</p>
+    </div>
+</div>
+
+<div class="am-flow" aria-label="Etapas do atendimento">
+    <span class="@(sel is not null ? "done" : "")"><i class="bi @(sel is not null ? "bi-check-lg" : "bi-person")"></i> 1. Cliente</span><i class="bi bi-chevron-right"></i>
+    <span class="@(sel is not null ? "done" : "")"><i class="bi @(sel is not null ? "bi-check-lg" : "bi-car-front")"></i> 2. Veículo</span><i class="bi bi-chevron-right"></i>
+    <span class="active"><i class="bi bi-clipboard2-plus"></i> 3. Ordem de serviço</span>
+</div>
+
+<form asp-action="Create" method="post" novalidate data-am-once>
+    <div class="row g-3">
+        <div class="col-xl-8">
+            <div class="am-card">
+                <div class="am-card-body">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="am-form-section">
+                        <h3>Cliente e veículo</h3>
+                        @if (Model.VeiculoFixo && sel is not null)
+                        {
+                            <input type="hidden" asp-for="VeiculoId" />
+                            <input type="hidden" asp-for="VeiculoFixo" />
+                            <div class="am-selected">
+                                <partial name="_Placa" model="sel.Placa" view-data='new ViewDataDictionary(ViewData) { ["Tamanho"] = "lg" }' />
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold">@sel.Descricao @(sel.Ano?.ToString())</div>
+                                    <div class="small text-muted"><i class="bi bi-person me-1"></i>@sel.ClienteNome</div>
+                                </div>
+                                <a asp-action="Create" class="btn btn-sm btn-outline-secondary">Trocar veículo</a>
+                            </div>
+                        }
+                        else if (Model.Veiculos.Count == 0)
+                        {
+                            <div class="alert alert-warning mb-0"><i class="bi bi-exclamation-triangle-fill"></i>
+                                <div>Nenhum veículo cadastrado. <a asp-controller="Clientes" asp-action="Create">Cadastre o cliente</a> e o veículo para abrir a ordem.</div>
+                            </div>
+                        }
+                        else
+                        {
+                            <label class="form-label" for="filtro-veiculos"><span>Veículo</span><span class="req">*</span></label>
+                            <div class="am-search mw-100 mb-2">
+                                <i class="bi bi-search"></i>
+                                <input id="filtro-veiculos" type="search" class="form-control" placeholder="Pesquisar pela placa ou pelo cliente"
+                                       data-am-filter="#lista-veiculos" data-am-filter-empty="#lista-veiculos-vazia" autocomplete="off" />
+                            </div>
+                            <div class="am-vehicle-list" id="lista-veiculos" role="radiogroup" aria-label="Veículos cadastrados">
+                                @foreach (var v in Model.Veiculos)
+                                {
+                                    <label class="am-vehicle-option" data-am-filter-item="@v.Placa @Formatacao.Placa(v.Placa) @v.Descricao @v.ClienteNome">
+                                        <input type="radio" class="form-check-input" name="VeiculoId" value="@v.Id" @(v.Id == Model.VeiculoId ? "checked" : "") />
+                                        <partial name="_Placa" model="v.Placa" />
+                                        <span class="info">
+                                            <strong>@v.Descricao</strong>
+                                            <span><i class="bi bi-person me-1"></i>@v.ClienteNome</span>
+                                        </span>
+                                        @if (v.OrdensAbertas > 0)
+                                        {
+                                            <span class="status-badge status-andamento" style="font-size:.7rem">@v.OrdensAbertas em aberto</span>
+                                        }
+                                    </label>
+                                }
+                                <div id="lista-veiculos-vazia" class="am-empty d-none py-4">
+                                    <h3>Nenhum veículo encontrado</h3>
+                                    <p class="mb-0">Cliente ou veículo sem cadastro? <a asp-controller="Clientes" asp-action="Create">Cadastrar cliente</a> · <a asp-controller="Veiculos" asp-action="Create">Cadastrar veículo</a></p>
+                                </div>
+                            </div>
+                            <span asp-validation-for="VeiculoId" class="field-validation-error"></span>
+                            <div class="form-text">Não encontrou? <a asp-controller="Clientes" asp-action="Create">Cadastrar cliente</a> ou <a asp-controller="Veiculos" asp-action="Create">cadastrar veículo</a>.</div>
+                        }
+
+                        @if (Model.OrdensEmAbertoDoVeiculo.Count > 0)
+                        {
+                            <div class="alert alert-info mt-3 mb-0"><i class="bi bi-info-circle-fill"></i>
+                                <div>
+                                    Este veículo já possui ordem(ns) em aberto:
+                                    @foreach (var o in Model.OrdensEmAbertoDoVeiculo)
+                                    {
+                                        <a asp-action="Details" asp-route-id="@o.Numero" class="fw-semibold ms-1">@o.NumeroFormatado (@o.Status.Nome())</a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="am-form-section">
+                        <h3>Solicitação do cliente</h3>
+                        <label asp-for="DescricaoProblema" class="form-label"><span>Descrição do problema relatado</span><span class="req">*</span></label>
+                        <textarea asp-for="DescricaoProblema" class="form-control" rows="5" maxlength="@OrdemServicoService.DescricaoMaximo"
+                                  data-am-count="contador-descricao"
+                                  placeholder="Ex.: Barulho na suspensão dianteira ao passar em lombadas; cliente informa que começou há duas semanas."></textarea>
+                        <div class="d-flex justify-content-between">
+                            <span asp-validation-for="DescricaoProblema"></span>
+                            <span class="form-text ms-auto" id="contador-descricao"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="am-card-footer am-form-actions">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary" @(Model.Veiculos.Count == 0 ? "disabled" : "")><i class="bi bi-clipboard2-plus"></i> Abrir ordem de serviço</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4">
+            <div class="am-card">
+                <div class="am-card-header"><h2><i class="bi bi-info-circle"></i> Dados gerados automaticamente</h2></div>
+                <div class="am-card-body">
+                    <dl class="am-dl">
+                        <dt>Número</dt><dd class="tabular">@OrdemServico.FormatarNumero(Model.ProximoNumero) <span class="small text-muted fw-normal">(previsto)</span></dd>
+                        <dt>Abertura</dt><dd>@Formatacao.DataHora(DateTime.Now)</dd>
+                        <dt>Status inicial</dt><dd><partial name="_StatusBadge" model="StatusOrdem.Pendente" /></dd>
+                        <dt>Responsável</dt><dd>@User.ObterUsuario().Nome</dd>
+                    </dl>
+                    <p class="small text-muted mt-3 mb-0">O número é definido no momento da gravação e nunca é reutilizado.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

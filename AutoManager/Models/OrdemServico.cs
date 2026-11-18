@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AutoManager.Models.Enums;
 
 namespace AutoManager.Models;
@@ -31,6 +32,7 @@ public class OrdemServico
 
     public List<Observacao> Observacoes { get; set; } = [];
 
+    [JsonIgnore]
     public string NumeroFormatado => FormatarNumero(Numero);
 
     public static string FormatarNumero(int numero) => $"OS-{numero:D5}";
