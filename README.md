@@ -28,7 +28,7 @@ Acesse o endereço exibido no terminal (por padrão `http://localhost:5009`).
 
 ### Usuários iniciais
 
-Na primeira execução, o sistema cria os usuários abaixo em `AutoManager/Data/usuarios.json` (senhas gravadas com hash e salt):
+Na primeira execução, o sistema cria os usuários abaixo em `AutoManager/Data/oficina.json` (senhas gravadas com hash e salt):
 
 | Perfil | Usuário | Senha |
 |---|---|---|
@@ -44,7 +44,7 @@ cd AutoManager.Tests
 dotnet run
 ```
 
-São 33 testes, sem dependências externas, cobrindo autenticação, clientes, veículos, ordens de serviço, regras de negócio (RN01–RN16), persistência e o fluxo completo via HTTP com a aplicação real em execução.
+São 34 testes, sem dependências externas, cobrindo autenticação, clientes, veículos, ordens de serviço, regras de negócio, persistência e o fluxo completo via HTTP com a aplicação real em execução.
 
 ## Fluxo principal
 
@@ -95,22 +95,11 @@ AutoManager/                    Solution
 
 Os dados ficam em `AutoManager/Data/` (fora de `wwwroot`, portanto inacessíveis pelo navegador):
 
-| Arquivo | Conteúdo |
-|---|---|
-| `usuarios.json` | Usuários, perfis, hash e salt das senhas |
-| `clientes.json` | Clientes |
-| `veiculos.json` | Veículos (com `clienteId`) |
-| `ordens.json` | Ordens de serviço e suas observações |
-| `sequencias.json` | Últimos identificadores emitidos (garante que números não sejam reutilizados) |
+O arquivo `oficina.json` guarda usuários com hashes de senha, clientes, veículos, ordens com observações e os contadores de numeração. A abertura da OS e a atualização do contador são gravadas na mesma substituição atômica. A cópia anterior fica em `oficina.json.bak`.
 
-Cuidados implementados:
+A aplicação usa um semáforo compartilhado pelas operações da mesma instância. Ao encontrar os arquivos do formato anterior, lê os dados e os consolida na primeira gravação. Ao validar uma senha legada, atualiza seu hash para o formato do ASP.NET Core Identity.
 
-- **Gravação atômica**: o conteúdo é escrito em um arquivo temporário e só então substitui o original, mantendo uma cópia `.bak`.
-- **Concorrência**: um semáforo serializa as operações, de modo que verificações (ex.: placa duplicada) e gravações não se intercalem.
-- **Arquivo inválido não é sobrescrito**: se um JSON estiver corrompido, a operação é interrompida com mensagem clara.
-- **Integridade**: clientes com veículos/ordens e veículos com ordens não podem ser excluídos (RN16).
-
-Os arquivos de `Data/` não são versionados (`.gitignore`), pois contêm dados de uso e os hashes de senha.
+Os arquivos em `Data/` são ignorados pelo Git.
 
 ## Documentação
 

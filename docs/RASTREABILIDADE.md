@@ -1,32 +1,33 @@
-# Rastreabilidade: regras de negócio → implementação → testes
+# Rastreabilidade do AutoManager
 
-As regras abaixo seguem a consolidação do escopo do projeto. Caso a documentação acadêmica oficial use outros identificadores ou outra redação, ela prevalece. Basta ajustar a primeira coluna.
-
-| Regra | Descrição | Implementação | Teste automatizado |
-|---|---|---|---|
-| RN01 | Apenas usuários autenticados acessam o sistema | `Program.cs` (filtro global `AuthorizeFilter`, cookie de autenticação) | `FluxoHttpTestes.BloqueioNaoAutenticado`, `LoginLogout` |
-| RN02 | Cada usuário possui um perfil | `Models/Enums/PerfilUsuario.cs`, `Infrastructure/UsuarioClaims.cs` (perfil como *role*) | `AutenticacaoTestes.LoginValidoEInvalido` |
-| RN03 | Só a atendente cadastra e mantém clientes e veículos | `[Authorize(Roles = Perfis.Atendente)]` em `ClientesController` e `VeiculosController` | `FluxoHttpTestes.RestricoesMecanico` |
-| RN04 | Um cliente pode ter vários veículos | `Veiculo.ClienteId`, `ClienteService.ObterDetalhesAsync` | `VeiculoTestes.CadastroVinculado` |
-| RN05 | Todo veículo vinculado a um cliente cadastrado | `VeiculoService.Validar` | `VeiculoTestes.ClienteInexistente` |
-| RN06 | Placa única | `VeiculoService.Validar` (placa normalizada) | `VeiculoTestes.PlacaDuplicada` |
-| RN07 | OS vinculada a veículo cadastrado | `OrdemServicoService.AbrirAsync` | `OrdemServicoTestes.AberturaInvalida` |
-| RN08 | Identificador único da OS | `DataSession.ProximoNumeroOrdem` + `sequencias.json` | `OrdemServicoTestes.Abertura`, `PersistenciaTestes.PersisteAposReiniciar` |
-| RN09 | Status inicial Pendente | `OrdemServicoService.AbrirAsync` | `OrdemServicoTestes.Abertura` |
-| RN10 | Atendente e mecânico atualizam o status | `[Authorize(Roles = Perfis.Todos)]` em `Iniciar`, `Observacao`, `Concluir` | `OrdemServicoTestes.AtendenteAtualizaStatus`, `FluxoHttpTestes.FluxoCompleto` |
-| RN11 | Sequência Pendente → Em andamento → Concluída | `OrdemServicoService.AtualizarStatusAsync`, `StatusOrdem.Proximo()` | `OrdemServicoTestes.Transicoes` |
-| RN12 | Proibido retroceder ou pular etapas | `OrdemServicoService.AtualizarStatusAsync` | `OrdemServicoTestes.Transicoes` |
-| RN13 | Conclusão exige observação | `OrdemServicoService.AtualizarStatusAsync` (caso `Concluida`) | `OrdemServicoTestes.ConclusaoExigeObservacao` |
-| RN14 | Ordem concluída não pode ser reaberta, alterada ou excluída | `AtualizarStatusAsync` e `RegistrarObservacaoAsync`; não existe exclusão de OS | `OrdemServicoTestes.ConcluidaBloqueada` |
-| RN15 | Histórico permanece disponível | `HistoricoService`, `VeiculoService.ObterDetalhesAsync`, `_HistoricoVeiculo.cshtml` | `OrdemServicoTestes.HistoricoVeiculo` |
-| RN16 | Exclusões respeitam os vínculos e preservam o histórico | `ClienteService.MotivoBloqueioExclusao`, `VeiculoService.MotivoBloqueioExclusao` | `ClienteTestes.ExclusaoBloqueada`, `VeiculoTestes.Exclusao` |
-
-## Requisitos de persistência
-
-| Requisito | Implementação | Teste |
+| Regra oficial | Comportamento | Implementação |
 |---|---|---|
-| Persistência após reiniciar | Dados lidos do disco a cada operação (`DataSession`) | `PersistenciaTestes.PersisteAposReiniciar` |
-| Evitar perda de dados | Gravação atômica com `.bak` (`JsonFile.Gravar`) e recusa de arquivo inválido | `GravacaoAtomica`, `ArquivoCorrompido` |
-| Operações concorrentes | Semáforo único em `JsonDataStore` | `PersistenciaTestes.Concorrencia` |
-| Dados fora de `wwwroot` | Pasta `Data/` na raiz do projeto (configurável em `Persistencia:Pasta`) | — |
-| Senhas com hash e salt | `SenhaHasher` (PBKDF2-SHA256, 100.000 iterações, salt de 128 bits) | `AutenticacaoTestes.SenhaComHashESalt` |
+| RN-01 | Acesso autenticado | Filtro global em `Program.cs` e `AccountController` |
+| RN-02 | Perfis Atendente e Mecânico | `PerfilUsuario`, `UsuarioClaims` |
+| RN-03 | Manutenção de clientes pelo Atendente | `ClientesController`, ações protegidas por perfil |
+| RN-04 | Manutenção de veículos pelo Atendente | `VeiculosController`, ações protegidas por perfil |
+| RN-05 | Abertura de OS pelo Atendente | `OrdensServicoController.Create` |
+| RN-06 | Consultas compartilhadas | Controllers de clientes, veículos, ordens, histórico e painel |
+| RN-07 | Atualização de status e observações pelos dois perfis | `OrdensServicoController` e `OrdemServicoService` |
+| RN-08 | Nome e telefone obrigatórios | `ClienteService` |
+| RN-09 | Placa, marca e modelo obrigatórios | `VeiculoService` |
+| RN-10 | Proprietário válido e preservado na edição | `VeiculoService` |
+| RN-11 | Placa única normalizada | `VeiculoService`, `Formatacao.NormalizarPlaca` |
+| RN-12 | Exclusão de cliente somente sem veículos | `ClienteService` |
+| RN-13 | Exclusão de veículo somente sem ordens | `VeiculoService` |
+| RN-14 | Confirmação antes de excluir | Views `Delete.cshtml` e ações POST correspondentes |
+| RN-15 | Vínculo da OS com veículo cadastrado | `OrdemServicoService.AbrirAsync` |
+| RN-16 | Número único e persistido | `DataSession.ProximoNumeroOrdem`, `JsonFile` |
+| RN-17 | Descrição obrigatória | `OrdemServicoService.AbrirAsync` |
+| RN-18 | Data automática de abertura | `OrdemServicoService.AbrirAsync` |
+| RN-19 | Status inicial Pendente | `OrdemServicoService.AbrirAsync` |
+| RN-20 | Status permitidos | Enum `StatusOrdem` |
+| RN-21 | Transições sem salto ou retrocesso | `OrdemServicoService.AtualizarStatusAsync` |
+| RN-22 | Observação independente do status | `OrdemServicoService.RegistrarObservacaoAsync` |
+| RN-23 | Observação obrigatória na conclusão | `OrdemServicoService.ConcluirAsync` |
+| RN-24 | OS concluída sem reabertura ou alteração de status | `OrdemServicoService.AtualizarStatusAsync` |
+| RN-25 | Observações bloqueadas após conclusão | `OrdemServicoService.RegistrarObservacaoAsync` |
+| RN-26 | Preservação do histórico | `HistoricoService`, `VeiculoService` |
+| RN-27 | Contagem de ordens por status | `DashboardService` |
+
+Os testes ficam em `AutoManager.Tests/Testes`, organizados em autenticação, clientes, veículos, ordens, persistência e fluxo HTTP. A cobertura geral da suíte inclui permissões, transições, dados persistidos após reinício e falha de gravação na abertura.
