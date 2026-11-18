@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="AutoManager.Tests/AutoManager.Tests.csproj" />
   <Project Path="AutoManager/AutoManager.csproj" />
 </Solution>

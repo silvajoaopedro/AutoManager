@@ -1,0 +1,58 @@
+using AutoManager.Models.Enums;
+
+namespace AutoManager.Tests.Testes;
+
+public class PersistenciaTestes : ContextoServicos
+{
+    [Teste("Dados gravados em JSON permanecem após reiniciar a aplicação")]
+    public async Task PersisteAposReiniciar()
+    {
+        var cliente = await NovoClienteAsync();
+        var veiculo = await NovoVeiculoAsync(cliente);
+        var numero = await NovaOrdemAsync(veiculo);
+        await Ordens.IniciarAsync(numero, Mecanico);
+
+        foreach (var arquivo in new[] { "clientes.json", "veiculos.json", "ordens.json", "sequencias.json" })
+            Verificar.Verdadeiro(File.Exists(Path.Combine(Pasta, arquivo)), $"{arquivo} deve existir");
+
+        Recriar(); // nova instância lendo a mesma pasta
+
+        var ordem = await Ordens.ObterAsync(numero);
+        Verificar.Igual(StatusOrdem.EmAndamento, ordem?.Status, "Status lido do disco");
+        Verificar.Igual(veiculo, ordem!.VeiculoId, "Relacionamento OS → veículo");
+        Verificar.Igual(cliente, (await Veiculos.ObterAsync(veiculo))!.ClienteId, "Relacionamento veículo → cliente");
+        Verificar.Igual(numero + 1, await NovaOrdemAsync(veiculo), "Numeração continua após reiniciar");
+    }
+
+    [Teste("Gravação atômica mantém cópia de segurança (.bak) e não deixa temporários")]
+    public async Task GravacaoAtomica()
+    {
+        await NovoClienteAsync("Primeiro Cliente");
+        await NovoClienteAsync("Segundo Cliente", "16911112222");
+        Verificar.Verdadeiro(File.Exists(Path.Combine(Pasta, "clientes.json.bak")), "Cópia .bak deve existir");
+        Verificar.Falso(File.Exists(Path.Combine(Pasta, "clientes.json.tmp")), "Arquivo temporário não deve sobrar");
+    }
+
+    [Teste("Arquivo corrompido não é sobrescrito (evita perda de dados)")]
+    public async Task ArquivoCorrompido()
+    {
+        var caminho = Path.Combine(Pasta, "clientes.json");
+        await File.WriteAllTextAsync(caminho, "{ isto não é json válido");
+        await Verificar.LancaAsync<InvalidDataException>(() => NovoClienteAsync(), "Gravação sobre arquivo inválido");
+        Verificar.Contem("isto não é json", await File.ReadAllTextAsync(caminho), "Conteúdo original preservado");
+    }
+
+    [Teste("Operações concorrentes geram identificadores únicos sem perda de registros")]
+    public async Task Concorrencia()
+    {
+        var tarefas = Enumerable.Range(1, 40)
+            .Select(i => Clientes.CriarAsync(new ViewModels.ClienteFormViewModel { Nome = $"Cliente {i:00}", Telefone = $"169{i:00000000}" }));
+        var resultados = await Task.WhenAll(tarefas);
+
+        Verificar.Verdadeiro(resultados.All(r => r.Sucesso), "Todos os cadastros devem ser aceitos");
+        Verificar.Igual(40, resultados.Select(r => r.Valor!.Id).Distinct().Count(), "Identificadores únicos");
+
+        Recriar();
+        Verificar.Igual(40, (await Clientes.ListarTodosAsync()).Count, "Todos os registros gravados");
+    }
+}

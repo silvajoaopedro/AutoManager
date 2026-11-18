@@ -73,17 +73,17 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseStatusCodePagesWithReExecute("/Home/Status/{0}");
+
+// Arquivos estáticos de wwwroot (CSS, JS, imagens e bibliotecas locais)
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapStaticAssets();
-
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // Cria os usuários iniciais na primeira execução
 using (var escopo = app.Services.CreateScope())
