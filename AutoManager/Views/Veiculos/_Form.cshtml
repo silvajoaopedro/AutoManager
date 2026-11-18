@@ -1,0 +1,75 @@
+@model VeiculoFormViewModel
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+<div class="am-form-section">
+    <h3>Proprietário</h3>
+    @if (Model.ClienteFixo && Model.ClienteSelecionado is not null)
+    {
+        <input type="hidden" asp-for="ClienteId" />
+        <input type="hidden" asp-for="ClienteFixo" />
+        <div class="am-selected">
+            <span class="am-avatar" style="background:var(--am-sidebar)">@Formatacao.Iniciais(Model.ClienteSelecionado.Nome)</span>
+            <div class="flex-grow-1">
+                <div class="fw-semibold">@Model.ClienteSelecionado.Nome</div>
+                <div class="small text-muted">@Formatacao.Telefone(Model.ClienteSelecionado.Telefone)</div>
+            </div>
+            <a asp-action="Create" class="btn btn-sm btn-outline-secondary">Trocar cliente</a>
+        </div>
+    }
+    else
+    {
+        <label asp-for="ClienteId" class="form-label"><span>Cliente proprietário</span><span class="req">*</span></label>
+        @if (Model.Clientes.Count == 0)
+        {
+            <div class="alert alert-warning mb-0"><i class="bi bi-exclamation-triangle-fill"></i>
+                <div>Nenhum cliente cadastrado. <a asp-controller="Clientes" asp-action="Create">Cadastre o cliente</a> antes do veículo.</div>
+            </div>
+        }
+        else
+        {
+            <select asp-for="ClienteId" asp-items="Model.Clientes" class="form-select">
+                <option value="0">Selecione o cliente…</option>
+            </select>
+            <span asp-validation-for="ClienteId"></span>
+            <div class="form-text">Cliente não está na lista? <a asp-controller="Clientes" asp-action="Create">Cadastrar novo cliente</a>.</div>
+        }
+    }
+</div>
+
+<div class="am-form-section">
+    <h3>Dados do veículo</h3>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label asp-for="Placa" class="form-label"><span>Placa</span><span class="req">*</span></label>
+            <input asp-for="Placa" class="form-control input-placa" placeholder="ABC1D23" maxlength="8" data-am-mask="placa" autocomplete="off" autofocus />
+            <span asp-validation-for="Placa"></span>
+            <div class="form-text">Padrão antigo (ABC-1234) ou Mercosul (ABC1D23).</div>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Marca" class="form-label"><span>Marca</span><span class="req">*</span></label>
+            <input asp-for="Marca" class="form-control" placeholder="Ex.: Volkswagen" maxlength="40" list="marcas" autocomplete="off" />
+            <datalist id="marcas">
+                <option value="Chevrolet"></option><option value="Fiat"></option><option value="Ford"></option>
+                <option value="Honda"></option><option value="Hyundai"></option><option value="Jeep"></option>
+                <option value="Nissan"></option><option value="Peugeot"></option><option value="Renault"></option>
+                <option value="Toyota"></option><option value="Volkswagen"></option>
+            </datalist>
+            <span asp-validation-for="Marca"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Modelo" class="form-label"><span>Modelo</span><span class="req">*</span></label>
+            <input asp-for="Modelo" class="form-control" placeholder="Ex.: Gol 1.0" maxlength="60" autocomplete="off" />
+            <span asp-validation-for="Modelo"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Ano" class="form-label">Ano <span class="text-muted fw-normal">(opcional)</span></label>
+            <input asp-for="Ano" class="form-control" placeholder="Ex.: 2019" inputmode="numeric" type="number" min="1900" max="@(DateTime.Now.Year + 1)" />
+            <span asp-validation-for="Ano"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="Cor" class="form-label">Cor <span class="text-muted fw-normal">(opcional)</span></label>
+            <input asp-for="Cor" class="form-control" placeholder="Ex.: Prata" maxlength="30" autocomplete="off" />
+            <span asp-validation-for="Cor"></span>
+        </div>
+    </div>
+</div>

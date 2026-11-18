@@ -1,0 +1,90 @@
+@model VeiculoDetalhesViewModel
+@{
+    var v = Model.Veiculo;
+    ViewData["Title"] = "Veículo " + Formatacao.Placa(v.Placa);
+    var podeEditar = User.EhAtendente();
+}
+<div class="am-page-header">
+    <div>
+        <div class="am-breadcrumb"><a asp-action="Index">Veículos</a><i class="bi bi-chevron-right"></i>Detalhes</div>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <partial name="_Placa" model="v.Placa" view-data='new ViewDataDictionary(ViewData) { ["Tamanho"] = "lg" }' />
+            <div>
+                <h1>@v.Marca @v.Modelo</h1>
+                <p class="m-0">@(v.Ano?.ToString() ?? "Ano não informado")@(string.IsNullOrEmpty(v.Cor) ? "" : " · " + v.Cor)</p>
+            </div>
+        </div>
+    </div>
+    @if (podeEditar)
+    {
+        <div class="am-page-actions">
+            <a asp-action="Edit" asp-route-id="@v.Id" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i> Editar</a>
+            <a asp-action="Delete" asp-route-id="@v.Id" class="btn btn-outline-secondary text-danger"><i class="bi bi-trash3"></i> Excluir</a>
+            <a asp-controller="OrdensServico" asp-action="Create" asp-route-veiculoId="@v.Id" class="btn btn-primary"><i class="bi bi-clipboard2-plus"></i> Abrir ordem de serviço</a>
+        </div>
+    }
+</div>
+
+@if (Model.RecemCadastrado)
+{
+    <div class="am-next">
+        <span class="am-next-icon"><i class="bi bi-check-lg"></i></span>
+        <div class="am-next-text">
+            <strong>Veículo cadastrado e vinculado a @(Model.Cliente?.Nome).</strong>
+            <span>Cliente e veículo já estarão selecionados na abertura da ordem de serviço.</span>
+        </div>
+        <a asp-controller="OrdensServico" asp-action="Create" asp-route-veiculoId="@v.Id" class="btn btn-primary">Continuar para abertura da ordem de serviço <i class="bi bi-arrow-right"></i></a>
+    </div>
+}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="am-card mb-3">
+            <div class="am-card-header"><h2><i class="bi bi-car-front"></i> Dados do veículo</h2></div>
+            <div class="am-card-body">
+                <dl class="am-dl">
+                    <dt>Placa</dt><dd class="tabular">@Formatacao.Placa(v.Placa)</dd>
+                    <dt>Marca</dt><dd>@v.Marca</dd>
+                    <dt>Modelo</dt><dd>@v.Modelo</dd>
+                    <dt>Ano</dt><dd>@(v.Ano?.ToString() ?? "—")</dd>
+                    <dt>Cor</dt><dd>@(v.Cor ?? "—")</dd>
+                    <dt>Cadastro</dt><dd>@Formatacao.DataHora(v.DataCadastro)</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="am-card">
+            <div class="am-card-header"><h2><i class="bi bi-person"></i> Proprietário</h2></div>
+            <div class="am-card-body">
+                @if (Model.Cliente is { } c)
+                {
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="am-avatar" style="background:var(--am-sidebar)">@Formatacao.Iniciais(c.Nome)</span>
+                        <div class="min-w-0">
+                            <a asp-controller="Clientes" asp-action="Details" asp-route-id="@c.Id" class="fw-semibold text-decoration-none" style="color:var(--am-text)">@c.Nome</a>
+                            <div class="small text-muted">@Formatacao.Telefone(c.Telefone)</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <span class="text-muted">Proprietário não encontrado.</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="am-card" id="historico">
+            <div class="am-card-header">
+                <h2><i class="bi bi-clock-history"></i> Histórico de serviços</h2>
+                <div class="am-meta-row">
+                    <span>@Model.Historico.Count ordem(ns)</span>
+                    <span>@Model.Concluidas concluída(s)</span>
+                    <span>@Model.EmAberto em aberto</span>
+                </div>
+            </div>
+            <partial name="_HistoricoVeiculo" model="Model.Historico" />
+        </div>
+    </div>
+</div>

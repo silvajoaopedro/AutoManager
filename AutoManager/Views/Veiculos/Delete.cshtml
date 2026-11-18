@@ -1,0 +1,44 @@
+@model VeiculoExclusaoViewModel
+@{
+    var v = Model.Veiculo;
+    ViewData["Title"] = "Excluir veículo";
+}
+<div class="am-page-header">
+    <div>
+        <div class="am-breadcrumb"><a asp-action="Index">Veículos</a><i class="bi bi-chevron-right"></i><a asp-action="Details" asp-route-id="@v.Id">@Formatacao.Placa(v.Placa)</a><i class="bi bi-chevron-right"></i>Excluir</div>
+        <h1>Excluir veículo</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-7">
+        <div class="am-card">
+            <div class="am-card-body">
+                <dl class="am-dl mb-4">
+                    <dt>Placa</dt><dd><partial name="_Placa" model="v.Placa" /></dd>
+                    <dt>Veículo</dt><dd>@v.Marca @v.Modelo</dd>
+                    <dt>Proprietário</dt><dd>@(Model.Cliente?.Nome ?? "—")</dd>
+                    <dt>Ordens de serviço</dt><dd>@Model.QuantidadeOrdens</dd>
+                </dl>
+
+                @if (Model.BloqueioExclusao is not null)
+                {
+                    <div class="alert alert-warning mb-0"><i class="bi bi-exclamation-triangle-fill"></i><div><strong>Exclusão não permitida.</strong> @Model.BloqueioExclusao</div></div>
+                }
+                else
+                {
+                    <div class="alert alert-danger mb-0"><i class="bi bi-exclamation-octagon-fill"></i><div>Esta ação não pode ser desfeita. O veículo <strong>@Formatacao.Placa(v.Placa)</strong> será removido definitivamente.</div></div>
+                }
+            </div>
+            <div class="am-card-footer am-form-actions">
+                <a asp-action="Details" asp-route-id="@v.Id" class="btn btn-outline-secondary">Voltar</a>
+                @if (Model.BloqueioExclusao is null)
+                {
+                    <form asp-action="Delete" asp-route-id="@v.Id" method="post" data-am-once>
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-trash3"></i> Excluir definitivamente</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>
