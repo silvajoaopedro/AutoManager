@@ -1,0 +1,35 @@
+@model VeiculoDetalhesViewModel
+@{
+    var v = Model.Veiculo;
+    ViewData["Title"] = "Histórico " + Formatacao.Placa(v.Placa);
+}
+<div class="am-page-header">
+    <div>
+        <div class="am-breadcrumb"><a asp-action="Index">Histórico</a><i class="bi bi-chevron-right"></i>@Formatacao.Placa(v.Placa)</div>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <partial name="_Placa" model="v.Placa" view-data='new ViewDataDictionary(ViewData) { ["Tamanho"] = "lg" }' />
+            <div>
+                <h1>@v.Marca @v.Modelo</h1>
+                <p class="m-0">Proprietário: @(Model.Cliente?.Nome ?? "—")</p>
+            </div>
+        </div>
+    </div>
+    <div class="am-page-actions">
+        <a asp-controller="Veiculos" asp-action="Details" asp-route-id="@v.Id" class="btn btn-outline-secondary"><i class="bi bi-car-front"></i> Dados do veículo</a>
+        @if (User.EhAtendente())
+        {
+            <a asp-controller="OrdensServico" asp-action="Create" asp-route-veiculoId="@v.Id" class="btn btn-primary"><i class="bi bi-clipboard2-plus"></i> Nova ordem</a>
+        }
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-sm-4"><div class="am-card am-kpi total"><span class="am-kpi-icon"><i class="bi bi-clipboard2"></i></span><div><div class="am-kpi-label">Ordens</div><div class="am-kpi-value">@Model.Historico.Count</div></div></div></div>
+    <div class="col-sm-4"><div class="am-card am-kpi concluida"><span class="am-kpi-icon"><i class="bi bi-check-circle"></i></span><div><div class="am-kpi-label">Concluídas</div><div class="am-kpi-value">@Model.Concluidas</div></div></div></div>
+    <div class="col-sm-4"><div class="am-card am-kpi andamento"><span class="am-kpi-icon"><i class="bi bi-gear-wide-connected"></i></span><div><div class="am-kpi-label">Em aberto</div><div class="am-kpi-value">@Model.EmAberto</div></div></div></div>
+</div>
+
+<div class="am-card">
+    <div class="am-card-header"><h2><i class="bi bi-clock-history"></i> Linha do tempo de serviços</h2></div>
+    <partial name="_HistoricoVeiculo" model="Model.Historico" />
+</div>
