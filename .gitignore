@@ -1,0 +1,23 @@
+# Build
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Publicação
+publish/
+artifacts/
+
+# Dados gerados em tempo de execução (os arquivos JSON são criados automaticamente)
+AutoManager/Data/*.json
+AutoManager/Data/*.bak
+AutoManager/Data/*.tmp
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
