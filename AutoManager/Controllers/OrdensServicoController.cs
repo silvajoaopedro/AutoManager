@@ -55,4 +55,43 @@ public class OrdensServicoController : Controller
         await _ordens.PrepararAberturaAsync(form);
         return View(form);
     }
+
+    // Atendente e Mecânico podem atualizar o status e registrar observações (RN10).
+
+    [Authorize(Roles = Perfis.Todos)]
+    [HttpPost]
+    public async Task<IActionResult> Iniciar(int id)
+    {
+        var resultado = await _ordens.IniciarAsync(id, User.ObterUsuario());
+        return VoltarParaDetalhes(id, resultado);
+    }
+
+    [Authorize(Roles = Perfis.Todos)]
+    [HttpPost]
+    public async Task<IActionResult> Observacao(int id, ObservacaoViewModel form)
+    {
+        var resultado = await _ordens.RegistrarObservacaoAsync(id, form.Texto, User.ObterUsuario());
+        if (!resultado.Sucesso) TempData["RascunhoObservacao"] = form.Texto;
+        return VoltarParaDetalhes(id, resultado, "observacoes");
+    }
+
+    [Authorize(Roles = Perfis.Todos)]
+    [HttpPost]
+    public async Task<IActionResult> Concluir(int id, ObservacaoViewModel form)
+    {
+        var resultado = await _ordens.ConcluirAsync(id, form.Texto, User.ObterUsuario());
+        if (!resultado.Sucesso) TempData["RascunhoConclusao"] = form.Texto;
+        return VoltarParaDetalhes(id, resultado);
+    }
+
+    private IActionResult VoltarParaDetalhes(int id, Resultado resultado, string? ancora = null)
+    {
+        if (resultado.NaoEncontrado)
+            return NotFound();
+
+        if (resultado.Sucesso) this.Sucesso(resultado.Mensagem);
+        else this.Erro(resultado.Mensagem);
+
+        return RedirectToAction(nameof(Details), null, new { id }, ancora);
+    }
 }

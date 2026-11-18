@@ -82,7 +82,7 @@ public class VeiculoService
     public Task<Resultado<Veiculo>> AtualizarAsync(int id, VeiculoFormViewModel form) => _dados.EscreverAsync(s =>
     {
         var veiculo = s.Veiculos.FirstOrDefault(v => v.Id == id);
-        if (veiculo is null) return Resultado<Veiculo>.Falha("Veículo não encontrado.");
+        if (veiculo is null) return Resultado<Veiculo>.Inexistente("Veículo não encontrado.");
 
         var erro = Validar(s, form, idAtual: id, out var dados);
         if (erro is not null) return erro;

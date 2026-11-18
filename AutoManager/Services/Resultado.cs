@@ -10,6 +10,9 @@ public class Resultado
     public string? Mensagem { get; protected init; }
     public Dictionary<string, string> ErrosCampos { get; } = new();
 
+    /// <summary>Indica que o registro alvo da operação não existe (resposta 404).</summary>
+    public bool NaoEncontrado { get; protected init; }
+
     public static Resultado Ok(string? mensagem = null) => new() { Sucesso = true, Mensagem = mensagem };
 
     public static Resultado Falha(string mensagem) => new() { Sucesso = false, Mensagem = mensagem };
@@ -30,6 +33,9 @@ public class Resultado<T> : Resultado
         new() { Sucesso = true, Valor = valor, Mensagem = mensagem };
 
     public new static Resultado<T> Falha(string mensagem) => new() { Sucesso = false, Mensagem = mensagem };
+
+    public static Resultado<T> Inexistente(string mensagem) =>
+        new() { Sucesso = false, Mensagem = mensagem, NaoEncontrado = true };
 
     public new static Resultado<T> FalhaCampo(string campo, string mensagem)
     {

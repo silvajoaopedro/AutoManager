@@ -138,7 +138,37 @@
         });
     }
 
+    // Confirmação antes de ações irreversíveis (iniciar/concluir OS) ------------
+    function initConfirmacao() {
+        const modalEl = document.getElementById("am-confirm");
+        if (!modalEl || !window.bootstrap) return;
+        const modal = new bootstrap.Modal(modalEl);
+        const texto = modalEl.querySelector("[data-am-confirm-texto]");
+        const ok = modalEl.querySelector("[data-am-confirm-ok]");
+        let formPendente = null;
+
+        document.querySelectorAll("form[data-am-confirm]").forEach(function (form) {
+            form.addEventListener("submit", function (e) {
+                if (form.dataset.confirmado === "1") return;
+                if (!form.checkValidity()) { form.reportValidity(); e.preventDefault(); e.stopImmediatePropagation(); return; }
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                formPendente = form;
+                texto.textContent = form.getAttribute("data-am-confirm");
+                modal.show();
+            }, true);
+        });
+
+        ok.addEventListener("click", function () {
+            if (!formPendente) return;
+            formPendente.dataset.confirmado = "1";
+            modal.hide();
+            formPendente.requestSubmit ? formPendente.requestSubmit() : formPendente.submit();
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
+        initConfirmacao();
         initSidebar();
         initPassword();
         initTelefone();

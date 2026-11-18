@@ -106,4 +106,106 @@ public class OrdemServicoService
         s.Ordens.Add(ordem);
         return Resultado<OrdemServico>.Ok(ordem, $"Ordem de serviço {ordem.NumeroFormatado} aberta com status Pendente.");
     }, r => r.Sucesso);
+
+    // -----------------------------------------------------------------------
+    // Atualização de status e observações (RN10 a RN14)
+    // -----------------------------------------------------------------------
+
+    public const int ObservacaoMinimo = 3;
+    public const int ObservacaoMaximo = 1000;
+    public const int ConclusaoMinimo = 10;
+
+    /// <summary>Pendente → Em andamento.</summary>
+    public Task<Resultado<OrdemServico>> IniciarAsync(int numero, UsuarioLogado usuario) =>
+        AtualizarStatusAsync(numero, StatusOrdem.EmAndamento, observacao: null, usuario);
+
+    /// <summary>Em andamento → Concluída, exigindo observação sobre o serviço realizado (RN13).</summary>
+    public Task<Resultado<OrdemServico>> ConcluirAsync(int numero, string? observacao, UsuarioLogado usuario) =>
+        AtualizarStatusAsync(numero, StatusOrdem.Concluida, observacao, usuario);
+
+    /// <summary>
+    /// Ponto único de mudança de status. Só aceita a etapa imediatamente seguinte
+    /// (Pendente → Em andamento → Concluída), sem pular nem retroceder (RN11, RN12),
+    /// e recusa qualquer alteração em ordem concluída (RN14).
+    /// </summary>
+    public Task<Resultado<OrdemServico>> AtualizarStatusAsync(int numero, StatusOrdem novoStatus, string? observacao, UsuarioLogado usuario) =>
+        _dados.EscreverAsync(s =>
+        {
+            var ordem = s.Ordens.FirstOrDefault(o => o.Numero == numero);
+            if (ordem is null)
+                return Resultado<OrdemServico>.Inexistente("Ordem de serviço não encontrada.");
+
+            if (ordem.Status == StatusOrdem.Concluida)
+                return Resultado<OrdemServico>.Falha("Esta ordem já foi concluída e não pode ser reaberta nem alterada.");
+
+            if (novoStatus == ordem.Status)
+                return Resultado<OrdemServico>.Falha($"A ordem já está com status {ordem.Status.Nome()}.");
+
+            var permitido = ordem.Status.Proximo();
+            if (novoStatus != permitido)
+                return Resultado<OrdemServico>.Falha(
+                    $"Transição não permitida: {ordem.Status.Nome()} → {novoStatus.Nome()}. " +
+                    $"A próxima etapa desta ordem é {permitido?.Nome()}.");
+
+            var agora = DateTime.Now;
+            switch (novoStatus)
+            {
+                case StatusOrdem.EmAndamento:
+                    ordem.DataInicio = agora;
+                    ordem.IniciadaPorId = usuario.Id;
+                    ordem.IniciadaPorNome = usuario.Nome;
+                    break;
+
+                case StatusOrdem.Concluida:
+                    var texto = (observacao ?? string.Empty).Trim();
+                    if (texto.Length < ConclusaoMinimo)
+                        return Resultado<OrdemServico>.FalhaCampo("Texto",
+                            $"Para concluir, registre uma observação sobre o serviço realizado (mínimo de {ConclusaoMinimo} caracteres).");
+                    if (texto.Length > ObservacaoMaximo)
+                        return Resultado<OrdemServico>.FalhaCampo("Texto", $"A observação deve ter no máximo {ObservacaoMaximo} caracteres.");
+
+                    ordem.Observacoes.Add(NovaObservacao(texto, TipoObservacao.Conclusao, usuario, agora));
+                    ordem.DataConclusao = agora;
+                    ordem.ConcluidaPorId = usuario.Id;
+                    ordem.ConcluidaPorNome = usuario.Nome;
+                    break;
+            }
+
+            ordem.Status = novoStatus;
+            var mensagem = novoStatus == StatusOrdem.EmAndamento
+                ? $"Serviço da {ordem.NumeroFormatado} iniciado. Status: Em andamento."
+                : $"{ordem.NumeroFormatado} concluída. A ordem permanece disponível para consulta no histórico.";
+            return Resultado<OrdemServico>.Ok(ordem, mensagem);
+        }, r => r.Sucesso);
+
+    /// <summary>Registra uma observação. Não é permitido em ordens concluídas (RN14).</summary>
+    public Task<Resultado<OrdemServico>> RegistrarObservacaoAsync(int numero, string? texto, UsuarioLogado usuario) =>
+        _dados.EscreverAsync(s =>
+        {
+            var ordem = s.Ordens.FirstOrDefault(o => o.Numero == numero);
+            if (ordem is null)
+                return Resultado<OrdemServico>.Inexistente("Ordem de serviço não encontrada.");
+
+            if (ordem.Status == StatusOrdem.Concluida)
+                return Resultado<OrdemServico>.Falha("Esta ordem já foi concluída e não pode receber novas observações.");
+
+            var conteudo = (texto ?? string.Empty).Trim();
+            if (conteudo.Length is < ObservacaoMinimo or > ObservacaoMaximo)
+                return Resultado<OrdemServico>.FalhaCampo("Texto",
+                    $"A observação deve ter entre {ObservacaoMinimo} e {ObservacaoMaximo} caracteres.");
+
+            ordem.Observacoes.Add(NovaObservacao(conteudo, TipoObservacao.Registro, usuario, DateTime.Now));
+            return Resultado<OrdemServico>.Ok(ordem, "Observação registrada.");
+        }, r => r.Sucesso);
+
+    private static Observacao NovaObservacao(string texto, TipoObservacao tipo, UsuarioLogado usuario, DateTime quando) => new()
+    {
+        Id = Guid.NewGuid(),
+        Texto = texto,
+        Tipo = tipo,
+        DataHora = quando,
+        UsuarioId = usuario.Id,
+        UsuarioNome = usuario.Nome,
+        UsuarioPerfil = usuario.Perfil
+    };
 }

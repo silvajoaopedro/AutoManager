@@ -55,10 +55,63 @@
                     </ul>
                 }
             </div>
+            @if (!Model.Concluida)
+            {
+                <form asp-action="Observacao" asp-route-id="@o.Numero" method="post" class="am-card-footer" data-am-once>
+                    <label for="obs-texto" class="form-label">Registrar observação</label>
+                    <textarea id="obs-texto" name="Texto" class="form-control mb-2" rows="3" required minlength="@OrdemServicoService.ObservacaoMinimo"
+                              maxlength="@OrdemServicoService.ObservacaoMaximo" data-am-count="obs-contador"
+                              placeholder="Ex.: Diagnóstico realizado, procedimento executado, peça substituída…">@(TempData["RascunhoObservacao"] as string)</textarea>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="form-text" id="obs-contador"></span>
+                        <button type="submit" class="btn btn-dark ms-auto"><i class="bi bi-plus-lg"></i> Adicionar observação</button>
+                    </div>
+                </form>
+            }
         </div>
     </div>
 
     <div class="col-lg-4 order-1 order-lg-2">
+        <div class="am-card mb-3" id="status">
+            <div class="am-card-header"><h2><i class="bi bi-arrow-repeat"></i> Atualizar status</h2></div>
+            <div class="am-card-body">
+                @switch (o.Status)
+                {
+                    case StatusOrdem.Pendente:
+                        <p class="text-muted small">Aguardando o início do atendimento. Ao iniciar, o status passa para <strong>Em andamento</strong>.</p>
+                        <form asp-action="Iniciar" asp-route-id="@o.Numero" method="post" data-am-once
+                              data-am-confirm="Iniciar o serviço da @o.NumeroFormatado? O status passará de Pendente para Em andamento e não poderá retornar.">
+                            <button type="submit" class="btn btn-andamento w-100 btn-lg"><i class="bi bi-play-fill"></i> Iniciar serviço</button>
+                        </form>
+                        break;
+
+                    case StatusOrdem.EmAndamento:
+                        <p class="small text-muted mb-3">Iniciado por <strong>@o.IniciadaPorNome</strong> em @Formatacao.DataHora(o.DataInicio).</p>
+                        <form asp-action="Concluir" asp-route-id="@o.Numero" method="post" data-am-once
+                              data-am-confirm="Concluir a @o.NumeroFormatado? Depois de concluída, a ordem não poderá ser reaberta, alterada ou excluída.">
+                            <label for="conclusao-texto" class="form-label"><span>Observação sobre o serviço realizado</span><span class="req">*</span></label>
+                            <textarea id="conclusao-texto" name="Texto" class="form-control mb-1" rows="4" required minlength="@OrdemServicoService.ConclusaoMinimo"
+                                      maxlength="@OrdemServicoService.ObservacaoMaximo"
+                                      placeholder="Descreva o que foi feito: diagnóstico, peças trocadas, testes…">@(TempData["RascunhoConclusao"] as string)</textarea>
+                            <div class="form-text mb-3">Obrigatória para concluir (mínimo de @OrdemServicoService.ConclusaoMinimo caracteres).</div>
+                            <button type="submit" class="btn btn-concluir w-100 btn-lg"><i class="bi bi-check2-circle"></i> Concluir ordem</button>
+                        </form>
+                        break;
+
+                    default:
+                        <div class="am-lock">
+                            <i class="bi bi-lock-fill"></i>
+                            <div>
+                                <strong class="d-block">Ordem concluída</strong>
+                                Concluída por @o.ConcluidaPorNome em @Formatacao.DataHora(o.DataConclusao).
+                                Permanece disponível para consulta, mas não pode ser reaberta, alterada ou excluída.
+                            </div>
+                        </div>
+                        break;
+                }
+            </div>
+        </div>
+
         <div class="am-card">
             <div class="am-card-header"><h2><i class="bi bi-car-front"></i> Veículo e cliente</h2></div>
             <div class="am-card-body">

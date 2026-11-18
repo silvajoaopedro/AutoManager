@@ -92,7 +92,7 @@ public class ClienteService
     public Task<Resultado<Cliente>> AtualizarAsync(int id, ClienteFormViewModel form) => _dados.EscreverAsync(s =>
     {
         var cliente = s.Clientes.FirstOrDefault(c => c.Id == id);
-        if (cliente is null) return Resultado<Cliente>.Falha("Cliente não encontrado.");
+        if (cliente is null) return Resultado<Cliente>.Inexistente("Cliente não encontrado.");
 
         var erro = Validar(form, out var nome, out var telefone, out var email);
         if (erro is not null) return erro;
