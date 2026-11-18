@@ -1,0 +1,48 @@
+@model IEnumerable<OrdemResumo>
+@{
+    var ocultarCliente = ViewData["OcultarCliente"] as bool? ?? false;
+    var ocultarVeiculo = ViewData["OcultarVeiculo"] as bool? ?? false;
+}
+<div class="table-responsive">
+    <table class="table am-table am-table-stack">
+        <thead>
+            <tr>
+                <th>Ordem</th>
+                @if (!ocultarVeiculo) { <th>Veículo</th> }
+                @if (!ocultarCliente) { <th>Cliente</th> }
+                <th>Problema relatado</th>
+                <th>Abertura</th>
+                <th>Status</th>
+                <th class="col-actions"><span class="visually-hidden">Ações</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var o in Model)
+            {
+                <tr data-am-href="@Url.Action("Details", "OrdensServico", new { id = o.Numero })"
+                    data-am-filter-item="@o.NumeroFormatado @o.Placa @o.Veiculo @o.ClienteNome @o.DescricaoProblema">
+                    <td data-label="Ordem"><a asp-controller="OrdensServico" asp-action="Details" asp-route-id="@o.Numero" class="os-num">@o.NumeroFormatado</a></td>
+                    @if (!ocultarVeiculo)
+                    {
+                        <td data-label="Veículo">
+                            <div class="d-flex align-items-center gap-2">
+                                <partial name="_Placa" model="o.Placa" />
+                                <span class="cell-sub">@o.Veiculo</span>
+                            </div>
+                        </td>
+                    }
+                    @if (!ocultarCliente)
+                    {
+                        <td data-label="Cliente"><span class="fw-semibold">@o.ClienteNome</span></td>
+                    }
+                    <td data-label="Problema relatado"><span class="text-truncate-2">@o.DescricaoProblema</span></td>
+                    <td data-label="Abertura" class="cell-sub tabular" title="@Formatacao.DataHora(o.DataAbertura)">@Formatacao.Data(o.DataAbertura)</td>
+                    <td data-label="Status"><partial name="_StatusBadge" model="o.Status" /></td>
+                    <td class="col-actions">
+                        <a asp-controller="OrdensServico" asp-action="Details" asp-route-id="@o.Numero" class="btn btn-sm btn-outline-secondary">Abrir</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

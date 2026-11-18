@@ -1,0 +1,119 @@
+@model ClienteDetalhesViewModel
+@{
+    var c = Model.Cliente;
+    ViewData["Title"] = c.Nome;
+    var podeEditar = User.EhAtendente();
+}
+<div class="am-page-header">
+    <div>
+        <div class="am-breadcrumb"><a asp-action="Index">Clientes</a><i class="bi bi-chevron-right"></i>Detalhes</div>
+        <h1>@c.Nome</h1>
+        <div class="am-meta-row mt-1">
+            <span><i class="bi bi-telephone"></i>@Formatacao.Telefone(c.Telefone)</span>
+            <span><i class="bi bi-car-front"></i>@Model.Veiculos.Count veículo(s)</span>
+            <span><i class="bi bi-clipboard2"></i>@Model.Ordens.Count ordem(ns)</span>
+        </div>
+    </div>
+    @if (podeEditar)
+    {
+        <div class="am-page-actions">
+            <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i> Editar</a>
+            <a asp-action="Delete" asp-route-id="@c.Id" class="btn btn-outline-secondary text-danger"><i class="bi bi-trash3"></i> Excluir</a>
+            <a asp-controller="Veiculos" asp-action="Create" asp-route-clienteId="@c.Id" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo veículo</a>
+        </div>
+    }
+</div>
+
+@if (Model.RecemCadastrado)
+{
+    <div class="am-next">
+        <span class="am-next-icon"><i class="bi bi-check-lg"></i></span>
+        <div class="am-next-text">
+            <strong>Cliente cadastrado. Próximo passo: cadastrar o veículo.</strong>
+            <span>O veículo ficará vinculado a @c.Nome e, em seguida, você poderá abrir a ordem de serviço.</span>
+        </div>
+        <a asp-controller="Veiculos" asp-action="Create" asp-route-clienteId="@c.Id" class="btn btn-primary">Cadastrar veículo <i class="bi bi-arrow-right"></i></a>
+    </div>
+}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="am-card h-100">
+            <div class="am-card-header"><h2><i class="bi bi-person-vcard"></i> Dados do cliente</h2></div>
+            <div class="am-card-body">
+                <dl class="am-dl">
+                    <dt>Código</dt><dd class="tabular">#@c.Id</dd>
+                    <dt>Nome</dt><dd>@c.Nome</dd>
+                    <dt>Telefone</dt><dd class="tabular">@Formatacao.Telefone(c.Telefone)</dd>
+                    <dt>E-mail</dt><dd>@(string.IsNullOrEmpty(c.Email) ? "—" : c.Email)</dd>
+                    <dt>Cadastro</dt><dd>@Formatacao.DataHora(c.DataCadastro)</dd>
+                    @if (c.DataAtualizacao.HasValue)
+                    {
+                        <dt>Atualização</dt><dd>@Formatacao.DataHora(c.DataAtualizacao)</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="am-card h-100">
+            <div class="am-card-header">
+                <h2><i class="bi bi-car-front"></i> Veículos vinculados</h2>
+            </div>
+            @if (Model.Veiculos.Count == 0)
+            {
+                <div class="am-empty">
+                    <i class="bi bi-car-front"></i>
+                    <h3>Nenhum veículo vinculado</h3>
+                    @if (podeEditar)
+                    {
+                        <a asp-controller="Veiculos" asp-action="Create" asp-route-clienteId="@c.Id" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Cadastrar veículo</a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table am-table am-table-stack">
+                        <thead><tr><th>Placa</th><th>Veículo</th><th>Ordens</th><th class="col-actions"><span class="visually-hidden">Ações</span></th></tr></thead>
+                        <tbody>
+                            @foreach (var v in Model.Veiculos)
+                            {
+                                <tr data-am-href="@Url.Action("Details", "Veiculos", new { id = v.Id })">
+                                    <td data-label="Placa"><partial name="_Placa" model="v.Placa" /></td>
+                                    <td data-label="Veículo">
+                                        <a asp-controller="Veiculos" asp-action="Details" asp-route-id="@v.Id" class="cell-title">@v.Descricao</a>
+                                        <div class="cell-sub">@(v.Ano?.ToString() ?? "")@(v.Ano.HasValue && !string.IsNullOrEmpty(v.Cor) ? " · " : "")@v.Cor</div>
+                                    </td>
+                                    <td data-label="Ordens" class="cell-sub">@v.TotalOrdens no total@(v.OrdensAbertas > 0 ? $" · {v.OrdensAbertas} em aberto" : "")</td>
+                                    <td class="col-actions">
+                                        @if (podeEditar)
+                                        {
+                                            <a asp-controller="OrdensServico" asp-action="Create" asp-route-veiculoId="@v.Id" class="btn btn-sm btn-primary"><i class="bi bi-clipboard2-plus"></i> Abrir OS</a>
+                                        }
+                                        <a asp-controller="Veiculos" asp-action="Details" asp-route-id="@v.Id" class="btn btn-sm btn-outline-secondary">Histórico</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="am-card">
+            <div class="am-card-header"><h2><i class="bi bi-clipboard2-check"></i> Ordens de serviço do cliente</h2></div>
+            @if (Model.Ordens.Count == 0)
+            {
+                <div class="am-empty"><i class="bi bi-clipboard2"></i><h3>Nenhuma ordem de serviço</h3></div>
+            }
+            else
+            {
+                <partial name="_OrdensTabela" model="Model.Ordens" view-data='new ViewDataDictionary(ViewData) { ["OcultarCliente"] = true }' />
+            }
+        </div>
+    </div>
+</div>

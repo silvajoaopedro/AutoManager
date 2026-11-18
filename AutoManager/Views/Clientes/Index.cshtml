@@ -1,0 +1,119 @@
+@model ClienteListaViewModel
+@{
+    ViewData["Title"] = "Clientes";
+    var podeEditar = User.EhAtendente();
+}
+<div class="am-page-header">
+    <div>
+        <h1>Clientes</h1>
+        <p>@Model.Total cliente(s) cadastrado(s).</p>
+    </div>
+    @if (podeEditar)
+    {
+        <div class="am-page-actions">
+            <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Novo cliente</a>
+        </div>
+    }
+</div>
+
+<div class="am-card">
+    <form method="get" asp-action="Index" class="am-toolbar">
+        <div class="am-search">
+            <i class="bi bi-search"></i>
+            <input type="search" name="busca" value="@Model.Busca" class="form-control" placeholder="Buscar por nome, telefone, e-mail ou placa" aria-label="Buscar clientes" />
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-dark">Buscar</button>
+            @if (!string.IsNullOrWhiteSpace(Model.Busca))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">Limpar</a>
+            }
+        </div>
+    </form>
+
+    @if (Model.Itens.Count == 0)
+    {
+        <div class="am-empty">
+            <i class="bi bi-people"></i>
+            @if (string.IsNullOrWhiteSpace(Model.Busca))
+            {
+                <h3>Nenhum cliente cadastrado</h3>
+                <p>Os clientes cadastrados aparecerão aqui.</p>
+                @if (podeEditar)
+                {
+                    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Cadastrar primeiro cliente</a>
+                }
+            }
+            else
+            {
+                <h3>Nenhum cliente encontrado para “@Model.Busca”</h3>
+                <p>Verifique a grafia ou pesquise pela placa do veículo.</p>
+                @if (podeEditar)
+                {
+                    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Cadastrar novo cliente</a>
+                }
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table am-table am-table-stack">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Telefone</th>
+                        <th>Veículos</th>
+                        <th>Ordens</th>
+                        <th>Cadastro</th>
+                        <th class="col-actions"><span class="visually-hidden">Ações</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Itens)
+                    {
+                        var c = item.Cliente;
+                        <tr data-am-href="@Url.Action("Details", new { id = c.Id })">
+                            <td data-label="Cliente">
+                                <a asp-action="Details" asp-route-id="@c.Id" class="cell-title">@c.Nome</a>
+                                @if (!string.IsNullOrEmpty(c.Email))
+                                {
+                                    <div class="cell-sub">@c.Email</div>
+                                }
+                            </td>
+                            <td data-label="Telefone" class="tabular">@Formatacao.Telefone(c.Telefone)</td>
+                            <td data-label="Veículos">
+                                @if (item.QuantidadeVeiculos == 0)
+                                {
+                                    <span class="text-muted">Nenhum</span>
+                                }
+                                else
+                                {
+                                    <span class="d-inline-flex flex-wrap gap-1">
+                                        @foreach (var placa in item.Placas.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(3))
+                                        {
+                                            <partial name="_Placa" model="placa" />
+                                        }
+                                        @if (item.QuantidadeVeiculos > 3)
+                                        {
+                                            <span class="cell-sub align-self-center">+@(item.QuantidadeVeiculos - 3)</span>
+                                        }
+                                    </span>
+                                }
+                            </td>
+                            <td data-label="Ordens" class="tabular">@item.QuantidadeOrdens</td>
+                            <td data-label="Cadastro" class="cell-sub">@Formatacao.Data(c.DataCadastro)</td>
+                            <td class="col-actions">
+                                <a asp-action="Details" asp-route-id="@c.Id" class="btn btn-sm btn-outline-secondary">Detalhes</a>
+                                @if (podeEditar)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i><span class="visually-hidden">Editar</span></a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

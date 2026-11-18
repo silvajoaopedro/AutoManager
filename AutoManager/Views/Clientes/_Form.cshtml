@@ -1,0 +1,23 @@
+@model ClienteFormViewModel
+<div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+<div class="am-form-section">
+    <h3>Dados do cliente</h3>
+    <div class="row g-3">
+        <div class="col-12">
+            <label asp-for="Nome" class="form-label"><span>Nome completo</span><span class="req">*</span></label>
+            <input asp-for="Nome" class="form-control" placeholder="Ex.: Maria Aparecida dos Santos" maxlength="120" autocomplete="off" autofocus />
+            <span asp-validation-for="Nome"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Telefone" class="form-label"><span>Telefone</span><span class="req">*</span></label>
+            <input asp-for="Telefone" class="form-control" placeholder="(16) 99999-9999" inputmode="tel" data-am-mask="telefone" autocomplete="off" />
+            <span asp-validation-for="Telefone"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Email" class="form-label">E-mail <span class="text-muted fw-normal">(opcional)</span></label>
+            <input asp-for="Email" class="form-control" placeholder="cliente@email.com" type="email" autocomplete="off" />
+            <span asp-validation-for="Email"></span>
+        </div>
+    </div>
+</div>

@@ -20,6 +20,7 @@ builder.Services.AddSingleton<JsonDataStore>();
 // Serviços de negócio
 // ---------------------------------------------------------------------------
 builder.Services.AddSingleton<AuthService>();
+builder.Services.AddSingleton<ClienteService>();
 
 // ---------------------------------------------------------------------------
 // Autenticação por cookie e autorização por perfil (RN01, RN02)
