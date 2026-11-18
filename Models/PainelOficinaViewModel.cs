@@ -6,5 +6,6 @@ public record PainelOficinaViewModel(
     int Concluidas,
     IReadOnlyList<OrdemServico> OrdensRecentes,
     IReadOnlyDictionary<Guid, Veiculo> Veiculos,
+    IReadOnlyDictionary<Guid, Cliente> Clientes,
     IReadOnlyList<int> ConclusoesPorDia,
     DateOnly InicioPeriodo);

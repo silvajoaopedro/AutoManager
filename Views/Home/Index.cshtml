@@ -1,128 +1,187 @@
 @model PainelOficinaViewModel
+@using System.Globalization
 @{
     ViewData["Title"] = "Visão geral";
+    var ptBr = CultureInfo.GetCultureInfo("pt-BR");
     var total = Model.Pendentes + Model.EmAndamento + Model.Concluidas;
     var picoConclusoes = Math.Max(1, Model.ConclusoesPorDia.Max());
+    var conclusoesSemana = Model.ConclusoesPorDia.Sum();
+    var fimPeriodo = Model.InicioPeriodo.AddDays(Model.ConclusoesPorDia.Count - 1);
     var etapas = new[]
     {
-        (Status: StatusOrdem.Pendente, Nome: "Pendentes", Total: Model.Pendentes, Cor: "warning"),
-        (Status: StatusOrdem.EmAndamento, Nome: "Em andamento", Total: Model.EmAndamento, Cor: "primary"),
-        (Status: StatusOrdem.Concluida, Nome: "Concluídas", Total: Model.Concluidas, Cor: "success")
+        (Status: StatusOrdem.Pendente, Nome: "Pendentes", Singular: "Pendente", Total: Model.Pendentes,
+            Tom: "pendente", Icone: "relogio", Resumo: "Aguardando início do serviço", Etapa: "Prontas para começar"),
+        (Status: StatusOrdem.EmAndamento, Nome: "Em andamento", Singular: "Em andamento", Total: Model.EmAndamento,
+            Tom: "andamento", Icone: "chave", Resumo: "Serviços em execução", Etapa: "A oficina em movimento"),
+        (Status: StatusOrdem.Concluida, Nome: "Concluídas", Singular: "Concluída", Total: Model.Concluidas,
+            Tom: "concluida", Icone: "concluido", Resumo: "Histórico preservado", Etapa: "Serviços finalizados")
     };
 }
 
 <div class="painel">
-    <header class="painel-cabecalho mb-4">
-        <h1 class="display-6 fw-bold mb-1">Visão geral<span>.</span></h1>
-        <p class="text-muted mb-0">Acompanhe as ordens de serviço da abertura à conclusão.</p>
+    <header class="painel-cabecalho">
+        <div>
+            <p class="painel-sobretitulo"><span aria-hidden="true"></span>Seu dia na oficina</p>
+            <h1>Visão geral<span aria-hidden="true">.</span></h1>
+            <p class="painel-subtitulo">Tudo o que sua oficina precisa acompanhar, em um só lugar.</p>
+        </div>
+        @if (User.IsInRole("Atendente"))
+        {
+            <a class="btn oficina-nova painel-nova" href="@Url.Action("Abrir", "Ordens")" aria-label="Nova ordem de serviço">
+                <partial name="_Icone" model="@("mais")" />
+                <span class="painel-nova-texto">Nova ordem de serviço</span>
+                <span class="painel-nova-curto">Nova OS</span>
+            </a>
+        }
     </header>
 
-    <section class="mb-4" aria-labelledby="titulo-fluxo">
-        <h2 id="titulo-fluxo" class="visually-hidden">Indicadores das ordens de serviço</h2>
-        <div class="row row-cols-2 row-cols-xl-4 g-3">
-            <div class="col">
-                <a class="card painel-indicador h-100 text-decoration-none text-dark rounded-4"
-                   asp-controller="Ordens" asp-action="Index">
-                    <div class="card-body d-flex flex-column align-items-start gap-2 p-3 p-lg-4">
-                        <span class="fw-semibold">Total de ordens</span>
-                        <strong class="display-6 fw-bold lh-1">@total</strong>
-                    </div>
-                </a>
-            </div>
-            @foreach (var etapa in etapas)
-            {
-                <div class="col">
-                    <a class="card painel-indicador h-100 text-decoration-none text-dark rounded-4"
-                       asp-controller="Ordens" asp-action="Index" asp-route-status="@etapa.Status">
-                        <div class="card-body d-flex flex-column align-items-start gap-2 p-3 p-lg-4">
-                            <span class="d-flex align-items-center gap-2 fw-semibold">
-                                <span class="painel-status bg-@etapa.Cor" aria-hidden="true"></span>
-                                @etapa.Nome
-                            </span>
-                            <strong class="display-6 fw-bold lh-1">@etapa.Total</strong>
-                        </div>
-                    </a>
-                </div>
-            }
-        </div>
+    <section class="painel-indicadores" aria-labelledby="titulo-indicadores">
+        <h2 id="titulo-indicadores" class="visually-hidden">Indicadores das ordens de serviço</h2>
+        <a class="painel-cartao painel-indicador" href="@Url.Action("Index", "Ordens")">
+            <span class="painel-indicador-topo">
+                <span>Total de ordens</span>
+                <span class="painel-icone painel-icone-neutro"><partial name="_Icone" model="@("prancheta")" /></span>
+            </span>
+            <strong>@total.ToString("00")</strong>
+            <small><span class="painel-ponto painel-ponto-neutro" aria-hidden="true"></span>Todas as ordens cadastradas</small>
+        </a>
+        @foreach (var etapa in etapas)
+        {
+            <a class="painel-cartao painel-indicador" href="@Url.Action("Index", "Ordens", new { status = etapa.Status })">
+                <span class="painel-indicador-topo">
+                    <span>@etapa.Nome</span>
+                    <span class="painel-icone painel-icone-@etapa.Tom"><partial name="_Icone" model="@etapa.Icone" /></span>
+                </span>
+                <strong>@etapa.Total.ToString("00")</strong>
+                <small><span class="painel-ponto painel-ponto-@etapa.Tom" aria-hidden="true"></span>@etapa.Resumo</small>
+            </a>
+        }
     </section>
 
-    <div class="painel-resumo mb-4">
-    <section class="card painel-recentes rounded-4" aria-labelledby="titulo-etapas">
-        <div class="card-body p-3 p-md-4">
-            <h2 id="titulo-etapas" class="h5 mb-1">Fluxo das ordens</h2>
-            <p class="text-muted small mb-3">Da abertura à conclusão.</p>
-            <ol class="painel-etapas list-unstyled mb-0">
-                @foreach (var etapa in etapas)
+    <div class="painel-resumo">
+        <section class="painel-cartao painel-bloco" aria-labelledby="titulo-fluxo">
+            <div class="painel-bloco-topo">
+                <div>
+                    <h2 id="titulo-fluxo">Cada serviço, no seu caminho</h2>
+                    <p>Um fluxo simples, do primeiro atendimento à conclusão.</p>
+                </div>
+                <span class="painel-bloco-icone"><partial name="_Icone" model="@("fluxo")" /></span>
+            </div>
+            <ol class="painel-etapas">
+                @for (var i = 0; i < etapas.Length; i++)
                 {
-                    <li class="painel-etapa painel-etapa-@etapa.Cor">
-                        <strong>@etapa.Total</strong>
-                        <span>@etapa.Nome</span>
+                    var etapa = etapas[i];
+                    <li>
+                        <a class="painel-etapa painel-etapa-@etapa.Tom" href="@Url.Action("Index", "Ordens", new { status = etapa.Status })">
+                            <span class="painel-etapa-numero">@((i + 1).ToString("00"))</span>
+                            <strong>@etapa.Total.ToString("00")</strong>
+                            <span class="painel-etapa-nome">@etapa.Singular</span>
+                            <span class="painel-etapa-desc">@etapa.Etapa</span>
+                        </a>
+                        @if (i < etapas.Length - 1)
+                        {
+                            <span class="painel-etapa-seta" aria-hidden="true"><partial name="_Icone" model="@("seta")" /></span>
+                        }
                     </li>
                 }
             </ol>
-        </div>
-    </section>
+            <p class="painel-rodape">Selecione uma etapa para ver as ordens filtradas por status.</p>
+        </section>
 
-    <section class="card painel-recentes rounded-4" aria-labelledby="titulo-ritmo">
-        <div class="card-body p-3 p-md-4">
-            <h2 id="titulo-ritmo" class="h5 mb-1">Ritmo da oficina</h2>
-            <p class="text-muted small">Conclusões nos últimos 7 dias</p>
-            <ul class="painel-grafico list-unstyled mb-0">
+        <section class="painel-cartao painel-bloco" aria-labelledby="titulo-ritmo">
+            <div class="painel-bloco-topo">
+                <div>
+                    <h2 id="titulo-ritmo">Ritmo da oficina</h2>
+                    <p>Serviços concluídos nos últimos 7 dias</p>
+                </div>
+                <strong class="painel-ritmo-total" aria-label="@conclusoesSemana concluídas no período">@conclusoesSemana</strong>
+            </div>
+            <ul class="painel-grafico">
                 @for (var dia = 0; dia < Model.ConclusoesPorDia.Count; dia++)
                 {
                     var quantidade = Model.ConclusoesPorDia[dia];
                     var data = Model.InicioPeriodo.AddDays(dia);
-                    <li>
-                        <span class="small">@quantidade</span>
-                        <meter min="0" max="@picoConclusoes" value="@quantidade"
-                               aria-label="@data.ToString("dd/MM"): @quantidade ordens concluídas"></meter>
-                        <span class="small text-muted">@data.Day</span>
+                    var altura = quantidade == 0 ? 4 : Math.Max(12, quantidade * 100 / picoConclusoes);
+                    var ehHoje = dia == Model.ConclusoesPorDia.Count - 1;
+                    <li class="@(ehHoje ? "painel-grafico-hoje" : null)">
+                        <span class="painel-grafico-valor" aria-hidden="true">@quantidade</span>
+                        <span class="painel-grafico-trilho" aria-hidden="true">
+                            <span class="painel-grafico-barra" style="height: @altura%"></span>
+                        </span>
+                        <span class="painel-grafico-dia" aria-hidden="true">@data.ToString("ddd", ptBr).TrimEnd('.')</span>
+                        <span class="visually-hidden">@data.ToString("dddd, dd/MM", ptBr): @quantidade @(quantidade == 1 ? "ordem concluída" : "ordens concluídas")</span>
                     </li>
                 }
             </ul>
-        </div>
-    </section>
+            <p class="painel-rodape painel-rodape-grafico">
+                <span><span class="painel-ponto painel-ponto-concluida" aria-hidden="true"></span>Conclusões registradas</span>
+                <strong>@Model.InicioPeriodo.ToString("d MMM", ptBr) — @fimPeriodo.ToString("d MMM", ptBr)</strong>
+            </p>
+        </section>
     </div>
 
-    <section class="card painel-recentes rounded-4 mb-4" aria-labelledby="titulo-recentes">
-        <div class="card-body p-3 p-md-4">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                <h2 id="titulo-recentes" class="h5 mb-0">Ordens recentes</h2>
+    <section class="painel-cartao painel-recentes" aria-labelledby="titulo-recentes">
+        <div class="painel-bloco-topo">
+            <div>
+                <h2 id="titulo-recentes">Ordens recentes</h2>
+                <p>Acompanhe os detalhes e dê o próximo passo.</p>
             </div>
-            @if (Model.OrdensRecentes.Count == 0)
-            {
-                <p class="painel-vazio text-muted mb-0">Ainda não há ordens de serviço cadastradas.</p>
-            }
-            else
-            {
-                <ul class="list-group list-group-flush">
+            <a class="painel-ver-todas" href="@Url.Action("Index", "Ordens")">
+                Ver todas <partial name="_Icone" model="@("avancar")" />
+            </a>
+        </div>
+        @if (Model.OrdensRecentes.Count == 0)
+        {
+            <p class="painel-vazio">Ainda não há ordens de serviço cadastradas.</p>
+        }
+        else
+        {
+            <table class="painel-tabela">
+                <thead>
+                    <tr>
+                        <th scope="col">Ordem</th>
+                        <th scope="col">Veículo / Cliente</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Abertura</th>
+                        <th scope="col"><span class="visually-hidden">Detalhes</span></th>
+                    </tr>
+                </thead>
+                <tbody>
                     @foreach (var ordem in Model.OrdensRecentes)
                     {
                         var etapa = etapas.First(item => item.Status == ordem.Status);
                         Model.Veiculos.TryGetValue(ordem.VeiculoId, out var veiculo);
-                        <li class="list-group-item px-0 py-3">
-                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                                <div>
-                                    <a class="fw-semibold" asp-controller="Ordens" asp-action="Detalhes"
-                                       asp-route-numero="@ordem.Numero">Ordem #@ordem.Numero</a>
-                                    <div class="small text-muted">
-                                        @(veiculo is null ? "Veículo indisponível" : $"{veiculo.Placa} · {veiculo.Marca} {veiculo.Modelo}")
-                                        · @ordem.DataAbertura.ToString("dd/MM/yyyy")
-                                    </div>
-                                </div>
-                                <span class="badge rounded-pill text-bg-@etapa.Cor">@(ordem.Status switch
-                                {
-                                    StatusOrdem.Pendente => "Pendente",
-                                    StatusOrdem.Concluida => "Concluída",
-                                    _ => "Em andamento"
-                                })</span>
-                            </div>
-                            <p class="mb-0 mt-2 text-break">@ordem.ProblemaRelatado</p>
-                        </li>
+                        Cliente? cliente = null;
+                        if (veiculo is not null)
+                            Model.Clientes.TryGetValue(veiculo.ClienteId, out cliente);
+                        var abertura = ordem.DataAbertura.ToLocalTime();
+                        var detalheVeiculo = string.Join(" · ", new[] { veiculo?.Placa, cliente?.Nome }.Where(texto => !string.IsNullOrEmpty(texto)));
+                        <tr>
+                            <td class="painel-tabela-numero">#OS-@ordem.Numero</td>
+                            <td>
+                                <span class="painel-veiculo">
+                                    <span class="painel-veiculo-icone"><partial name="_Icone" model="@("carro")" /></span>
+                                    <span>
+                                        <strong>@(veiculo is null ? "Veículo indisponível" : $"{veiculo.Marca} {veiculo.Modelo}")</strong>
+                                        <small>@detalheVeiculo</small>
+                                    </span>
+                                </span>
+                            </td>
+                            <td><span class="painel-status painel-status-@etapa.Tom">@etapa.Singular</span></td>
+                            <td class="painel-tabela-data">
+                                <time datetime="@abertura.ToString("o")">@abertura.ToString("d MMM", ptBr) <br />@abertura.ToString("HH:mm")</time>
+                            </td>
+                            <td class="painel-tabela-acao">
+                                <a href="@Url.Action("Detalhes", "Ordens", new { numero = ordem.Numero })"
+                                   aria-label="Ver detalhes da ordem #@ordem.Numero">
+                                    <span class="painel-tabela-acao-texto">Ver detalhes</span>
+                                    <partial name="_Icone" model="@("avancar")" />
+                                </a>
+                            </td>
+                        </tr>
                     }
-                </ul>
-            }
-        </div>
+                </tbody>
+            </table>
+        }
     </section>
 </div>

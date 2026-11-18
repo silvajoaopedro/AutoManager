@@ -1,3 +1,5 @@
+@using System.Globalization
+@inject AutoManager.Services.OficinaService Oficina
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -13,35 +15,79 @@
     @if (User.Identity?.IsAuthenticated == true)
     {
         var modulo = ViewContext.RouteData.Values["controller"]?.ToString();
+        var ehAtendente = User.IsInRole("Atendente");
+        var nomeUsuario = User.Identity.Name ?? "";
+        var partesNome = nomeUsuario.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var iniciais = partesNome.Length switch
+        {
+            0 => "?",
+            1 => partesNome[0][..Math.Min(2, partesNome[0].Length)],
+            _ => $"{partesNome[0][0]}{partesNome[^1][0]}"
+        };
+        int? ordensAbertas = null;
+        try
+        {
+            ordensAbertas = Oficina.ConsultarOrdens().Count(ordem => ordem.Status != StatusOrdem.Concluida);
+        }
+        catch (Exception)
+        {
+            // O contador do menu é opcional; a página continua sem ele.
+        }
+        var hoje = DateTime.Now.ToString("d MMM 'de' yyyy", CultureInfo.GetCultureInfo("pt-BR"));
+
         <aside class="offcanvas-lg offcanvas-start oficina-menu" tabindex="-1" id="menuOficina" aria-labelledby="marcaOficina">
-            <div class="oficina-marca" id="marcaOficina"><span aria-hidden="true">A</span> AutoManager</div>
+            <div class="oficina-marca" id="marcaOficina">
+                <span class="oficina-logo" aria-hidden="true">A</span>
+                <span>
+                    <strong>Auto<span>Manager</span></strong>
+                    <small>Gestão da oficina</small>
+                </span>
+            </div>
             <button class="btn-close btn-close-white d-lg-none oficina-fechar" type="button"
                     data-bs-dismiss="offcanvas" data-bs-target="#menuOficina" aria-label="Fechar menu"></button>
             <nav aria-label="Módulos da oficina">
-                <a asp-controller="Home" asp-action="Index" aria-current="@(modulo == "Home" ? "page" : null)">Visão geral</a>
-                <a asp-controller="Ordens" asp-action="Index" aria-current="@(modulo == "Ordens" ? "page" : null)">Ordens de serviço</a>
-                <a asp-controller="Veiculos" asp-action="Index" aria-current="@(modulo == "Veiculos" ? "page" : null)">Veículos</a>
-                <a asp-controller="Clientes" asp-action="Index" aria-current="@(modulo == "Clientes" ? "page" : null)">Clientes</a>
+                <p class="oficina-secao">Principal</p>
+                <a asp-controller="Home" asp-action="Index" aria-current="@(modulo == "Home" ? "page" : null)">
+                    <partial name="_Icone" model="@("grade")" /> Visão geral
+                </a>
+                <a asp-controller="Ordens" asp-action="Index" aria-current="@(modulo == "Ordens" ? "page" : null)">
+                    <partial name="_Icone" model="@("prancheta")" /> Ordens de serviço
+                    @if (ordensAbertas > 0)
+                    {
+                        <span class="oficina-contador" title="Ordens em aberto">@ordensAbertas<span class="visually-hidden"> em aberto</span></span>
+                    }
+                </a>
+                <a asp-controller="Veiculos" asp-action="Index" aria-current="@(modulo == "Veiculos" ? "page" : null)">
+                    <partial name="_Icone" model="@("carro")" /> Veículos
+                </a>
+                <a asp-controller="Clientes" asp-action="Index" aria-current="@(modulo == "Clientes" ? "page" : null)">
+                    <partial name="_Icone" model="@("pessoas")" /> Clientes
+                </a>
             </nav>
             <div class="oficina-perfil">
-                <strong>@User.Identity.Name</strong>
-                <span>@(User.IsInRole("Atendente") ? "Atendente" : "Mecânico")</span>
+                <span class="oficina-avatar" aria-hidden="true">@iniciais.ToUpperInvariant()</span>
+                <span class="oficina-perfil-nome">
+                    <strong>@nomeUsuario</strong>
+                    <small>@(ehAtendente ? "Atendente" : "Mecânico")</small>
+                </span>
                 <form asp-controller="Conta" asp-action="Sair" method="post" asp-antiforgery="true">
-                    <button type="submit" class="btn btn-sm btn-outline-light">Sair</button>
+                    <button type="submit" class="oficina-sair" title="Sair" aria-label="Sair">
+                        <partial name="_Icone" model="@("sair")" />
+                    </button>
                 </form>
             </div>
         </aside>
         <div class="oficina-area">
             <header class="oficina-topo">
-                <button class="btn oficina-menu-toggle d-lg-none" type="button" data-bs-toggle="offcanvas"
-                        data-bs-target="#menuOficina" aria-controls="menuOficina" aria-label="Abrir menu">☰</button>
-                <span class="oficina-local">Oficina <span aria-hidden="true">/</span> <strong>@ViewData["Title"]</strong></span>
-                @if (User.IsInRole("Atendente"))
-                {
-                    <a class="btn oficina-nova" asp-controller="Ordens" asp-action="Abrir">
-                        <span aria-hidden="true">+</span> <span class="d-none d-sm-inline">Nova ordem de serviço</span><span class="d-sm-none">Nova OS</span>
-                    </a>
-                }
+                <button class="oficina-menu-toggle d-lg-none" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#menuOficina" aria-controls="menuOficina" aria-label="Abrir menu">
+                    <partial name="_Icone" model="@("menu")" />
+                </button>
+                <nav class="oficina-local" aria-label="Você está em">
+                    <span>Oficina</span> <span class="oficina-local-sep" aria-hidden="true">/</span> <strong>@ViewData["Title"]</strong>
+                </nav>
+                <span class="oficina-data d-none d-sm-inline">@hoje</span>
+                <span class="oficina-avatar oficina-avatar-topo d-none d-sm-inline-grid" title="@nomeUsuario" aria-hidden="true">@iniciais.ToUpperInvariant()</span>
             </header>
             <main class="oficina-conteudo">@RenderBody()</main>
         </div>

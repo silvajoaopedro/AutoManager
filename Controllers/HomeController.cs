@@ -12,6 +12,8 @@ public class HomeController(OficinaService oficina) : Controller
         var ordens = oficina.ConsultarOrdens();
         var veiculos = oficina.ConsultarVeiculos()
             .ToDictionary(veiculo => veiculo.Id);
+        var clientes = oficina.ConsultarClientes()
+            .ToDictionary(cliente => cliente.Id);
 
         var inicioPeriodo = DateOnly.FromDateTime(DateTime.Today).AddDays(-6);
         var conclusoes = new int[7];
@@ -29,6 +31,7 @@ public class HomeController(OficinaService oficina) : Controller
             ordens.Count(ordem => ordem.Status == StatusOrdem.Concluida),
             ordens.Take(6).ToList(),
             veiculos,
+            clientes,
             conclusoes,
             inicioPeriodo));
     }
