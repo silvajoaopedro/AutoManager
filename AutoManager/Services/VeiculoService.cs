@@ -97,7 +97,7 @@ public class VeiculoService
         return Resultado<Veiculo>.Ok(veiculo, "Dados do veículo atualizados.");
     }, r => r.Sucesso);
 
-    /// <summary>Exclui o veículo somente se não houver ordens de serviço vinculadas (RN16).</summary>
+    /// <summary>Exclui o veículo somente se não houver ordens de serviço vinculadas.</summary>
     public Task<Resultado> ExcluirAsync(int id) => _dados.EscreverAsync(s =>
     {
         var veiculo = s.Veiculos.FirstOrDefault(v => v.Id == id);

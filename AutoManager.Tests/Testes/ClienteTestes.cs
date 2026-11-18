@@ -56,7 +56,7 @@ public class ClienteTestes : ContextoServicos
         Verificar.Igual(null, await Clientes.ObterAsync(id), "Cliente removido");
     }
 
-    [Teste("RN16: exclusão bloqueada quando o cliente possui veículos")]
+    [Teste("exclusão bloqueada quando o cliente possui veículos")]
     public async Task ExclusaoBloqueada()
     {
         var id = await NovoClienteAsync();

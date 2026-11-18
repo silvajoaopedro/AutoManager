@@ -12,8 +12,7 @@ public class PersistenciaTestes : ContextoServicos
         var numero = await NovaOrdemAsync(veiculo);
         await Ordens.IniciarAsync(numero, Mecanico);
 
-        foreach (var arquivo in new[] { "clientes.json", "veiculos.json", "ordens.json", "sequencias.json" })
-            Verificar.Verdadeiro(File.Exists(Path.Combine(Pasta, arquivo)), $"{arquivo} deve existir");
+        Verificar.Verdadeiro(File.Exists(Path.Combine(Pasta, "oficina.json")), "O estado deve existir");
 
         Recriar(); // nova instância lendo a mesma pasta
 
@@ -29,17 +28,42 @@ public class PersistenciaTestes : ContextoServicos
     {
         await NovoClienteAsync("Primeiro Cliente");
         await NovoClienteAsync("Segundo Cliente", "16911112222");
-        Verificar.Verdadeiro(File.Exists(Path.Combine(Pasta, "clientes.json.bak")), "Cópia .bak deve existir");
-        Verificar.Falso(File.Exists(Path.Combine(Pasta, "clientes.json.tmp")), "Arquivo temporário não deve sobrar");
+        Verificar.Verdadeiro(File.Exists(Path.Combine(Pasta, "oficina.json.bak")), "Cópia .bak deve existir");
+        Verificar.Falso(File.Exists(Path.Combine(Pasta, "oficina.json.tmp")), "Arquivo temporário não deve sobrar");
     }
 
     [Teste("Arquivo corrompido não é sobrescrito (evita perda de dados)")]
     public async Task ArquivoCorrompido()
     {
-        var caminho = Path.Combine(Pasta, "clientes.json");
+        var caminho = Path.Combine(Pasta, "oficina.json");
         await File.WriteAllTextAsync(caminho, "{ isto não é json válido");
         await Verificar.LancaAsync<InvalidDataException>(() => NovoClienteAsync(), "Gravação sobre arquivo inválido");
         Verificar.Contem("isto não é json", await File.ReadAllTextAsync(caminho), "Conteúdo original preservado");
+    }
+
+    [Teste("Falha ao salvar preserva a ordem e o contador anteriores")]
+    public async Task AberturaSemGravacaoParcial()
+    {
+        var cliente = await NovoClienteAsync();
+        var veiculo = await NovoVeiculoAsync(cliente);
+        var numero = await NovaOrdemAsync(veiculo);
+        var caminho = Path.Combine(Pasta, "oficina.json");
+        var anterior = await File.ReadAllTextAsync(caminho);
+        var temporario = caminho + ".tmp";
+        Directory.CreateDirectory(temporario);
+        try
+        {
+            await Verificar.LancaAsync<UnauthorizedAccessException>(
+                () => NovaOrdemAsync(veiculo), "Caminho temporário bloqueado");
+            Verificar.Igual(anterior, await File.ReadAllTextAsync(caminho), "O estado anterior permanece intacto");
+        }
+        finally
+        {
+            Directory.Delete(temporario);
+        }
+
+        Recriar();
+        Verificar.Igual(numero + 1, await NovaOrdemAsync(veiculo), "A tentativa anterior não consumiu um número");
     }
 
     [Teste("Operações concorrentes geram identificadores únicos sem perda de registros")]

@@ -6,7 +6,7 @@ using AutoManager.ViewModels;
 namespace AutoManager.Services;
 
 /// <summary>
-/// Histórico de serviços (RN15): gerado a partir das ordens armazenadas,
+/// Histórico de serviços: gerado a partir das ordens armazenadas,
 /// agrupadas por veículo.
 /// </summary>
 public class HistoricoService

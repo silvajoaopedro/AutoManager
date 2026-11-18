@@ -4,7 +4,7 @@ namespace AutoManager.Tests.Testes;
 
 public class VeiculoTestes : ContextoServicos
 {
-    [Teste("RN04/RN05: veículo vinculado a cliente; um cliente pode ter vários veículos")]
+    [Teste("veículo vinculado a cliente; um cliente pode ter vários veículos")]
     public async Task CadastroVinculado()
     {
         var cliente = await NovoClienteAsync();
@@ -16,14 +16,14 @@ public class VeiculoTestes : ContextoServicos
         Verificar.Verdadeiro(detalhes.Veiculos.Any(v => v.Placa == "ABC1234"), "Placa normalizada sem hífen e em maiúsculas");
     }
 
-    [Teste("RN05: veículo sem cliente cadastrado é recusado")]
+    [Teste("veículo sem cliente cadastrado é recusado")]
     public async Task ClienteInexistente()
     {
         var r = await Veiculos.CriarAsync(new VeiculoFormViewModel { ClienteId = 99, Placa = "ABC1D23", Marca = "Fiat", Modelo = "Uno" });
         Verificar.Verdadeiro(r.ErrosCampos.ContainsKey("ClienteId"), "Cliente inexistente deve ser recusado");
     }
 
-    [Teste("RN06: placa duplicada é bloqueada (mesmo com hífen ou minúsculas)")]
+    [Teste("placa duplicada é bloqueada (mesmo com hífen ou minúsculas)")]
     public async Task PlacaDuplicada()
     {
         var cliente = await NovoClienteAsync();
@@ -64,7 +64,7 @@ public class VeiculoTestes : ContextoServicos
         Verificar.Igual(outroCliente, v.ClienteId, "Proprietário alterado");
     }
 
-    [Teste("RN16: veículo com ordens não pode ser excluído; sem ordens pode")]
+    [Teste("veículo com ordens não pode ser excluído; sem ordens pode")]
     public async Task Exclusao()
     {
         var cliente = await NovoClienteAsync();

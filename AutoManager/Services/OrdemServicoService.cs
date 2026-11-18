@@ -75,8 +75,8 @@ public class OrdemServicoService
     });
 
     /// <summary>
-    /// Abre uma ordem de serviço para um veículo cadastrado (RN07), com número
-    /// único gerado automaticamente (RN08) e status inicial Pendente (RN09).
+    /// Abre uma ordem de serviço para um veículo cadastrado, com número
+    /// único gerado automaticamente e status inicial Pendente.
     /// </summary>
     public Task<Resultado<OrdemServico>> AbrirAsync(AbrirOrdemViewModel form, UsuarioLogado usuario) => _dados.EscreverAsync(s =>
     {
@@ -108,7 +108,7 @@ public class OrdemServicoService
     }, r => r.Sucesso);
 
     // -----------------------------------------------------------------------
-    // Atualização de status e observações (RN10 a RN14)
+    // Atualização de status e observações
     // -----------------------------------------------------------------------
 
     public const int ObservacaoMinimo = 3;
@@ -119,14 +119,14 @@ public class OrdemServicoService
     public Task<Resultado<OrdemServico>> IniciarAsync(int numero, UsuarioLogado usuario) =>
         AtualizarStatusAsync(numero, StatusOrdem.EmAndamento, observacao: null, usuario);
 
-    /// <summary>Em andamento → Concluída, exigindo observação sobre o serviço realizado (RN13).</summary>
+    /// <summary>Em andamento → Concluída, exigindo observação sobre o serviço realizado.</summary>
     public Task<Resultado<OrdemServico>> ConcluirAsync(int numero, string? observacao, UsuarioLogado usuario) =>
         AtualizarStatusAsync(numero, StatusOrdem.Concluida, observacao, usuario);
 
     /// <summary>
     /// Ponto único de mudança de status. Só aceita a etapa imediatamente seguinte
-    /// (Pendente → Em andamento → Concluída), sem pular nem retroceder (RN11, RN12),
-    /// e recusa qualquer alteração em ordem concluída (RN14).
+    /// (Pendente → Em andamento → Concluída), sem pular nem retroceder,
+    /// e recusa qualquer alteração em ordem concluída.
     /// </summary>
     public Task<Resultado<OrdemServico>> AtualizarStatusAsync(int numero, StatusOrdem novoStatus, string? observacao, UsuarioLogado usuario) =>
         _dados.EscreverAsync(s =>
@@ -178,7 +178,7 @@ public class OrdemServicoService
             return Resultado<OrdemServico>.Ok(ordem, mensagem);
         }, r => r.Sucesso);
 
-    /// <summary>Registra uma observação. Não é permitido em ordens concluídas (RN14).</summary>
+    /// <summary>Registra uma observação. Não é permitido em ordens concluídas.</summary>
     public Task<Resultado<OrdemServico>> RegistrarObservacaoAsync(int numero, string? texto, UsuarioLogado usuario) =>
         _dados.EscreverAsync(s =>
         {

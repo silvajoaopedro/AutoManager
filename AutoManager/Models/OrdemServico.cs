@@ -5,12 +5,12 @@ namespace AutoManager.Models;
 
 public class OrdemServico
 {
-    /// <summary>Número da ordem, gerado automaticamente e nunca reutilizado (RN08).</summary>
+    /// <summary>Número da ordem, gerado automaticamente e nunca reutilizado.</summary>
     public int Numero { get; set; }
 
     public int ClienteId { get; set; }
 
-    /// <summary>Veículo atendido (RN07).</summary>
+    /// <summary>Veículo atendido.</summary>
     public int VeiculoId { get; set; }
 
     public DateTime DataAbertura { get; set; }

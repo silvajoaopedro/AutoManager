@@ -1,4 +1,5 @@
 using AutoManager.Models.Enums;
+using System.Text.Json.Serialization;
 
 namespace AutoManager.Models;
 
@@ -13,11 +14,12 @@ public class Usuario
 
     public PerfilUsuario Perfil { get; set; }
 
-    /// <summary>Hash PBKDF2-SHA256 da senha, em Base64.</summary>
+    /// <summary>Hash de senha no formato do ASP.NET Core Identity.</summary>
     public string SenhaHash { get; set; } = string.Empty;
 
-    /// <summary>Salt aleatório da senha, em Base64.</summary>
-    public string SenhaSalt { get; set; } = string.Empty;
+    /// <summary>Salt separado, presente apenas nos registros legados.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SenhaSalt { get; set; }
 
     public bool Ativo { get; set; } = true;
 

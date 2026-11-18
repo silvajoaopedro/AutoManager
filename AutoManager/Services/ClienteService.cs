@@ -106,7 +106,7 @@ public class ClienteService
 
     /// <summary>
     /// Exclui o cliente somente quando não há veículos nem ordens vinculados,
-    /// preservando os registros do histórico (RN16).
+    /// preservando os registros do histórico.
     /// </summary>
     public Task<Resultado> ExcluirAsync(int id) => _dados.EscreverAsync(s =>
     {

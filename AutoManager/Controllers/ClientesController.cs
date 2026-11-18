@@ -9,7 +9,7 @@ namespace AutoManager.Controllers;
 
 /// <summary>
 /// Gerenciamento de clientes. Consulta liberada para os dois perfis;
-/// cadastro, edição e exclusão exclusivos da Atendente (RN03).
+/// cadastro, edição e exclusão exclusivos da Atendente.
 /// </summary>
 public class ClientesController : Controller
 {

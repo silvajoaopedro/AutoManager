@@ -1,11 +1,15 @@
 using AutoManager.Persistencia;
 using AutoManager.Models;
-using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity;
 
 namespace AutoManager.Services;
 
 public class AuthService
 {
+    private static readonly PasswordHasher<Usuario> Hasher = new();
+    private static readonly Usuario UsuarioFicticio = new();
+    private static readonly string HashFicticio = Hasher.HashPassword(UsuarioFicticio, Guid.NewGuid().ToString());
+
     private readonly JsonDataStore _dados;
     private readonly ILogger<AuthService> _logger;
 
@@ -31,11 +35,27 @@ public class AuthService
         if (usuario is null || !usuario.Ativo)
         {
             // Executa o hash mesmo assim para não revelar, pelo tempo de resposta, se o usuário existe
-            SenhaHasher.Verificar(senha, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", "AAAAAAAAAAAAAAAAAAAAAA==");
+            Hasher.VerifyHashedPassword(UsuarioFicticio, HashFicticio, senha);
             return null;
         }
 
-        return SenhaHasher.Verificar(senha, usuario.SenhaHash, usuario.SenhaSalt) ? usuario : null;
+        if (string.IsNullOrEmpty(usuario.SenhaSalt))
+            return Hasher.VerifyHashedPassword(usuario, usuario.SenhaHash, senha) != PasswordVerificationResult.Failed
+                ? usuario : null;
+
+        return await _dados.EscreverAsync(sessao =>
+        {
+            var atual = sessao.Usuarios.FirstOrDefault(u => u.Id == usuario.Id && u.Ativo);
+            if (atual is null) return (Usuario?)null;
+            if (string.IsNullOrEmpty(atual.SenhaSalt))
+                return Hasher.VerifyHashedPassword(atual, atual.SenhaHash, senha) != PasswordVerificationResult.Failed
+                    ? atual : null;
+            if (!SenhaHasher.Verificar(senha, atual.SenhaHash, atual.SenhaSalt)) return null;
+
+            atual.SenhaHash = Hasher.HashPassword(atual, senha);
+            atual.SenhaSalt = null;
+            return atual;
+        }, deveSalvar: resultado => resultado is not null);
     }
 
     /// <summary>
@@ -50,23 +70,22 @@ public class AuthService
 
             foreach (var inicial in opcoes.Usuarios.Where(u => !string.IsNullOrWhiteSpace(u.Login)))
             {
-                var (hash, salt) = SenhaHasher.GerarHash(inicial.Senha);
-                sessao.Usuarios.Add(new Usuario
+                var usuario = new Usuario
                 {
                     Id = sessao.ProximoIdUsuario(),
                     Login = inicial.Login.Trim().ToLowerInvariant(),
                     Nome = inicial.Nome.Trim(),
                     Perfil = inicial.Perfil,
-                    SenhaHash = hash,
-                    SenhaSalt = salt,
                     Ativo = true,
                     DataCriacao = DateTime.Now
-                });
+                };
+                usuario.SenhaHash = Hasher.HashPassword(usuario, inicial.Senha);
+                sessao.Usuarios.Add(usuario);
             }
             return sessao.Usuarios.Count;
         }, deveSalvar: quantidade => quantidade > 0);
 
         if (criados > 0)
-            _logger.LogInformation("{Quantidade} usuário(s) inicial(is) criado(s) em usuarios.json.", criados);
+            _logger.LogInformation("{Quantidade} usuário(s) inicial(is) criado(s) em oficina.json.", criados);
     }
 }

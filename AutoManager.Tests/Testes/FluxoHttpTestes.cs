@@ -19,7 +19,7 @@ public class FluxoHttpTestes
 
     private static string Local(HttpResponseMessage r) => r.Headers.Location?.ToString() ?? string.Empty;
 
-    [Teste("Usuário não autenticado é redirecionado para o login (RN01)")]
+    [Teste("Usuário não autenticado é redirecionado para o login")]
     public async Task BloqueioNaoAutenticado()
     {
         using var nav = new ServidorTeste.Navegador(await ServidorTeste.UrlAsync());
@@ -47,7 +47,7 @@ public class FluxoHttpTestes
         Verificar.Igual(HttpStatusCode.Redirect, (await nav.GetAsync("/")).StatusCode, "Após logout o acesso é bloqueado");
     }
 
-    [Teste("Mecânico não pode cadastrar, editar ou excluir — verificação no servidor (RN03)")]
+    [Teste("Mecânico não pode cadastrar, editar ou excluir — verificação no servidor")]
     public async Task RestricoesMecanico()
     {
         using var nav = new ServidorTeste.Navegador(await ServidorTeste.UrlAsync());
@@ -151,9 +151,9 @@ public class FluxoHttpTestes
         Verificar.Contem("Substituído o sensor de oxigênio", historico, "Observação de conclusão no histórico");
 
         // Dados realmente gravados nos arquivos JSON
-        using var ordens = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(ServidorTeste.PastaDados, "ordens.json")));
-        var ordem = ordens.RootElement.EnumerateArray().First(o => o.GetProperty("numero").GetInt32() == int.Parse(numero));
-        Verificar.Igual("Concluida", ordem.GetProperty("status").GetString(), "Status gravado em ordens.json");
-        Verificar.Igual(2, ordem.GetProperty("observacoes").GetArrayLength(), "Observações gravadas em ordens.json");
+        using var ordens = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(ServidorTeste.PastaDados, "oficina.json")));
+        var ordem = ordens.RootElement.GetProperty("ordens").EnumerateArray().First(o => o.GetProperty("numero").GetInt32() == int.Parse(numero));
+        Verificar.Igual("Concluida", ordem.GetProperty("status").GetString(), "Status gravado em oficina.json");
+        Verificar.Igual(2, ordem.GetProperty("observacoes").GetArrayLength(), "Observações gravadas em oficina.json");
     }
 }

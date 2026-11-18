@@ -20,10 +20,10 @@ public class AutenticacaoTestes : ContextoServicos
         var auth = new AuthService(Dados, Microsoft.Extensions.Logging.Abstractions.NullLogger<AuthService>.Instance);
         await auth.GarantirUsuariosIniciaisAsync(Iniciais());
 
-        var json = await File.ReadAllTextAsync(Path.Combine(Pasta, "usuarios.json"));
+        var json = await File.ReadAllTextAsync(Path.Combine(Pasta, "oficina.json"));
         Verificar.Falso(json.Contains("Atendente@123"), "A senha não pode aparecer no arquivo");
-        Verificar.Contem("senhaHash", json, "usuarios.json");
-        Verificar.Contem("senhaSalt", json, "usuarios.json");
+        Verificar.Contem("senhaHash", json, "oficina.json");
+        Verificar.Falso(json.Contains("senhaSalt"), "O novo formato incorpora o salt ao hash");
 
         var (h1, s1) = SenhaHasher.GerarHash("mesma-senha");
         var (h2, s2) = SenhaHasher.GerarHash("mesma-senha");

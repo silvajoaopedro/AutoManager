@@ -27,7 +27,7 @@ builder.Services.AddSingleton<HistoricoService>();
 builder.Services.AddSingleton<DashboardService>();
 
 // ---------------------------------------------------------------------------
-// Autenticação por cookie e autorização por perfil (RN01, RN02)
+// Autenticação por cookie e autorização por perfil
 // ---------------------------------------------------------------------------
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

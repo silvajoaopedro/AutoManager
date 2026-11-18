@@ -27,12 +27,10 @@ public static class JsonFile
             return new T();
 
         var conteudo = File.ReadAllText(caminho, Encoding.UTF8);
-        if (string.IsNullOrWhiteSpace(conteudo))
-            return new T();
-
         try
         {
-            return JsonSerializer.Deserialize<T>(conteudo, Opcoes) ?? new T();
+            return JsonSerializer.Deserialize<T>(conteudo, Opcoes)
+                ?? throw new JsonException("O arquivo não pode conter um valor nulo.");
         }
         catch (JsonException ex)
         {

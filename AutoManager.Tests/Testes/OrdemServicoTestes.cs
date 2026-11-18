@@ -5,7 +5,7 @@ namespace AutoManager.Tests.Testes;
 
 public class OrdemServicoTestes : ContextoServicos
 {
-    [Teste("RN07/RN08/RN09: abertura com numeração automática e status Pendente")]
+    [Teste("abertura com numeração automática e status Pendente")]
     public async Task Abertura()
     {
         var cliente = await NovoClienteAsync();
@@ -22,7 +22,7 @@ public class OrdemServicoTestes : ContextoServicos
         Verificar.Igual("OS-00001", r1.Valor.NumeroFormatado, "Número formatado");
     }
 
-    [Teste("RN07: ordem sem veículo cadastrado ou sem descrição é recusada")]
+    [Teste("ordem sem veículo cadastrado ou sem descrição é recusada")]
     public async Task AberturaInvalida()
     {
         var semVeiculo = await Ordens.AbrirAsync(new AbrirOrdemViewModel { VeiculoId = 42, DescricaoProblema = "Barulho no motor." }, Atendente);
@@ -33,7 +33,7 @@ public class OrdemServicoTestes : ContextoServicos
         Verificar.Verdadeiro(curta.ErrosCampos.ContainsKey("DescricaoProblema"), "Descrição muito curta");
     }
 
-    [Teste("RN11/RN12: não é permitido pular nem retroceder etapas")]
+    [Teste("não é permitido pular nem retroceder etapas")]
     public async Task Transicoes()
     {
         var numero = await NovaOrdemAsync(await NovoVeiculoAsync(await NovoClienteAsync()));
@@ -54,7 +54,7 @@ public class OrdemServicoTestes : ContextoServicos
         Verificar.Falso((await Ordens.IniciarAsync(numero, Mecanico)).Sucesso, "Iniciar duas vezes deve ser recusado");
     }
 
-    [Teste("RN10: atendente também pode atualizar o status")]
+    [Teste("atendente também pode atualizar o status")]
     public async Task AtendenteAtualizaStatus()
     {
         var numero = await NovaOrdemAsync(await NovoVeiculoAsync(await NovoClienteAsync()));
@@ -78,7 +78,7 @@ public class OrdemServicoTestes : ContextoServicos
         Verificar.Igual(PerfilUsuario.Mecanico, ordem.Observacoes[0].UsuarioPerfil, "Perfil do autor");
     }
 
-    [Teste("RN13: conclusão exige observação sobre o serviço realizado")]
+    [Teste("conclusão exige observação sobre o serviço realizado")]
     public async Task ConclusaoExigeObservacao()
     {
         var numero = await NovaOrdemAsync(await NovoVeiculoAsync(await NovoClienteAsync()));
@@ -96,7 +96,7 @@ public class OrdemServicoTestes : ContextoServicos
         Verificar.Igual(TipoObservacao.Conclusao, ordem.Observacoes.Last().Tipo, "Observação de conclusão registrada");
     }
 
-    [Teste("RN14: ordem concluída não pode ser reaberta nem alterada")]
+    [Teste("ordem concluída não pode ser reaberta nem alterada")]
     public async Task ConcluidaBloqueada()
     {
         var numero = await NovaOrdemAsync(await NovoVeiculoAsync(await NovoClienteAsync()));
@@ -110,7 +110,7 @@ public class OrdemServicoTestes : ContextoServicos
         Verificar.Igual(1, (await Ordens.ObterAsync(numero))!.Observacoes.Count, "Observações inalteradas");
     }
 
-    [Teste("RN15: histórico do veículo reúne ordens, datas, status e observações")]
+    [Teste("histórico do veículo reúne ordens, datas, status e observações")]
     public async Task HistoricoVeiculo()
     {
         var veiculo = await NovoVeiculoAsync(await NovoClienteAsync());

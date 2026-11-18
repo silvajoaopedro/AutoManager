@@ -56,7 +56,7 @@ public class OrdensServicoController : Controller
         return View(form);
     }
 
-    // Atendente e Mecânico podem atualizar o status e registrar observações (RN10).
+    // Atendente e Mecânico podem atualizar o status e registrar observações.
 
     [Authorize(Roles = Perfis.Todos)]
     [HttpPost]

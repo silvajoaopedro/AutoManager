@@ -2,7 +2,7 @@ namespace AutoManager.Models;
 
 /// <summary>
 /// Últimos identificadores emitidos. Mantidos em arquivo próprio para que
-/// um identificador nunca seja reutilizado, mesmo após exclusões (RN08).
+/// um identificador nunca seja reutilizado, mesmo após exclusões.
 /// </summary>
 public class Sequencias
 {

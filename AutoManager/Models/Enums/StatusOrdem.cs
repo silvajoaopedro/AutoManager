@@ -2,7 +2,7 @@ namespace AutoManager.Models.Enums;
 
 /// <summary>
 /// Status possíveis de uma ordem de serviço.
-/// A sequência obrigatória é Pendente → EmAndamento → Concluida (RN11).
+/// A sequência obrigatória é Pendente → EmAndamento → Concluida.
 /// </summary>
 public enum StatusOrdem
 {

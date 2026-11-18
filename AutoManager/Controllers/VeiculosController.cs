@@ -10,7 +10,7 @@ namespace AutoManager.Controllers;
 
 /// <summary>
 /// Gerenciamento de veículos. Consulta e histórico liberados para os dois perfis;
-/// cadastro, edição e exclusão exclusivos da Atendente (RN03).
+/// cadastro, edição e exclusão exclusivos da Atendente.
 /// </summary>
 public class VeiculosController : Controller
 {
